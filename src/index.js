@@ -1,24 +1,21 @@
 'use strict'
 
-module.exports = (maxConcurrency = 1) => {
+module.exports = (slots = 1) => {
   const queue = []
-  let concurrency = 0
-
-  const isLocked = () => concurrency === maxConcurrency
 
   const release = () => {
-    --concurrency
+    ++slots
     if (queue.length) acquire(queue.shift())
+    return true
   }
 
-  const acquire = () =>
-    new Promise(resolve => {
-      if (isLocked()) return queue.push(resolve)
-      ++concurrency
-      return resolve(release)
-    })
+  const acquire = () => {
+    if (acquire.isLocked()) queue.push(Promise.resolve)
+    else --slots
+    return release
+  }
 
-  acquire.isLocked = isLocked
+  acquire.isLocked = () => slots === 0
 
   return acquire
 }

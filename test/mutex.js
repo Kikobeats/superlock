@@ -1,6 +1,6 @@
 'use strict'
 
-const { setImmediate, setTimeout } = require('timers/promises')
+const { setImmediate } = require('timers/promises')
 const test = require('ava')
 
 const createLock = require('..')
@@ -16,8 +16,7 @@ test('get exclusion', async t => {
   t.true(lock.isLocked())
   t.false(used)
 
-  await setTimeout(
-    50,
+  await setImmediate(
     (() => {
       used = true
       release()
@@ -29,7 +28,7 @@ test('get exclusion', async t => {
 })
 
 test('queue petitions in order', async t => {
-  const n = 10
+  const n = 1000
 
   t.plan(n + 3)
 

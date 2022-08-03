@@ -5,8 +5,8 @@
   "version": "0.0.0",
   "main": "src/index.js",
   "author": {
-    "email": "josefrancisco.verdu@gmail.com",
     "name": "Kiko Beats",
+    "email": "josefrancisco.verdu@gmail.com",
     "url": "https://kikobeats.com"
   },
   "repository": {
@@ -17,7 +17,6 @@
     "url": "https://github.com/Kikobeats/lock/issues"
   },
   "keywords": [],
-  "dependencies": {},
   "devDependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
