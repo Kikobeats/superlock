@@ -5,23 +5,21 @@ module.exports = (slots = 1) => {
 
   const release = () => {
     ++slots
-    if (queue.length) {
-      const fn = queue.shift()
-      acquire(fn)
-    }
+    if (queue.length > 0) queue.shift()()
   }
 
-  const acquire = () =>
-    new Promise(resolve => {
-      if (acquire.isLocked()) {
-        return new Promise(r => queue.push(r(resolve(release))))
-      }
+  const acquire = resolve => () => {
+    --slots
+    resolve(release)
+  }
 
-      --slots
-      return resolve(release)
+  const lock = () =>
+    new Promise(resolve => {
+      const fn = acquire(resolve)
+      lock.isLocked() ? queue.push(fn) : fn()
     })
 
-  acquire.isLocked = () => slots === 0
+  lock.isLocked = () => slots === 0
 
-  return acquire
+  return lock
 }

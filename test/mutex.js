@@ -1,10 +1,8 @@
 'use strict'
 
-const { setTimeout } = require('timers/promises')
 const test = require('ava')
 
-const delay = ms => setTimeout(ms, Promise.resolve)
-
+const { delay } = require('./helpers')
 const createLock = require('..')
 
 test('locked when there is no more free slots', async t => {
@@ -35,7 +33,7 @@ test('locked when there is no more free slots', async t => {
 })
 
 test('get a free slot when is possible', async t => {
-  t.plan(7)
+  t.plan(12)
 
   const lock = createLock()
 
@@ -43,52 +41,52 @@ test('get a free slot when is possible', async t => {
 
   const order = []
 
-  const promiseOne = delay(100)
-    .then(lock)
-    .then(release => {
+  const createPromise = (payload, ms) =>
+    lock().then(release => {
       t.true(lock.isLocked())
       t.true(typeof release === 'function')
-      order.push('one')
-      release()
+      order.push(payload)
+      return delay(ms).then(release)
     })
 
-  const promiseTwo = delay(50)
-    .then(lock)
-    .then(release => {
-      t.true(lock.isLocked())
-      t.true(typeof release === 'function')
-      order.push('two')
-      release()
-    })
+  const promiseOne = createPromise('one', 50)
+  const promiseTwo = createPromise('two', 100)
+  const promiseThree = createPromise('three', 150)
 
-  await delay(50)
-  t.is(order.length, 1)
-
+  t.true(lock.isLocked())
   await promiseOne
+  t.true(lock.isLocked())
   await promiseTwo
-
-  t.deepEqual(order, ['two', 'one'])
+  t.true(lock.isLocked())
+  await promiseThree
+  t.false(lock.isLocked())
+  t.is(order.length, 3)
 })
 
 test('first in, first out', async t => {
-  const n = 1000
-
-  t.plan(n + 3)
+  const n = 100
 
   const lock = createLock()
-  let output = []
+  const output = []
 
   t.is(lock.isLocked(), false)
 
   const collection = [...Array(n).keys()]
 
-  for (const index of collection) {
-    const release = await lock()
-    t.true(lock.isLocked())
-    output.push(index)
-    release()
-  }
+  await Promise.all(
+    collection.map(async index => {
+      await delay()
+      const release = await lock()
+      output.push(index)
+      release()
+    })
+  )
 
   t.is(lock.isLocked(), false)
-  t.deepEqual(collection, output)
+  t.is(collection.length, output.length)
+
+  t.deepEqual(
+    collection,
+    output.slice().sort((a, b) => a - b)
+  )
 })

@@ -2,6 +2,7 @@
 
 const test = require('ava')
 
+const { delay } = require('./helpers')
 const createLock = require('..')
 
 test('get exclusion', async t => {
@@ -26,12 +27,11 @@ test('get exclusion', async t => {
   t.false(lock.isLocked())
 })
 
-test('queue petitions in order', async t => {
-  const n = 10
-  const concurrency = 2
+test('first in, first out', async t => {
+  const n = 100
 
-  const lock = createLock(concurrency)
-  let output = []
+  const lock = createLock(2)
+  const output = []
 
   t.is(lock.isLocked(), false)
 
@@ -39,12 +39,18 @@ test('queue petitions in order', async t => {
 
   await Promise.all(
     collection.map(async index => {
-      const release = await lock(index)
+      await delay()
+      const release = await lock()
       output.push(index)
       release()
     })
   )
 
   t.is(lock.isLocked(), false)
-  t.deepEqual(collection, output)
+  t.is(collection.length, output.length)
+
+  t.deepEqual(
+    collection,
+    output.slice().sort((a, b) => a - b)
+  )
 })
