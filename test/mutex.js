@@ -1,9 +1,9 @@
 'use strict'
 
+const { createLock } = require('@kikobeats/lock')
 const test = require('ava')
 
 const { delay } = require('./helpers')
-const createLock = require('..')
 
 test('locked when there is no more free slots', async t => {
   t.plan(7)
@@ -12,8 +12,6 @@ test('locked when there is no more free slots', async t => {
 
   t.false(lock.isLocked())
 
-  const order = []
-
   const lockPromise = lock()
 
   t.true(lockPromise instanceof Promise)
@@ -21,14 +19,14 @@ test('locked when there is no more free slots', async t => {
   const promise = lockPromise.then(release => {
     t.true(lock.isLocked())
     t.true(typeof release === 'function')
-    order.push('one')
     release()
+    return 'one'
   })
 
   t.true(promise instanceof Promise)
-  await promise
+  const result = await promise
 
-  t.deepEqual(order, ['one'])
+  t.is(result, 'one')
   t.false(lock.isLocked())
 })
 
@@ -45,8 +43,10 @@ test('get a free slot when is possible', async t => {
     lock().then(release => {
       t.true(lock.isLocked())
       t.true(typeof release === 'function')
-      order.push(payload)
-      return delay(ms).then(release)
+      return delay(ms).then(() => {
+        release()
+        return payload
+      })
     })
 
   const promiseOne = createPromise('one', 50)
@@ -54,11 +54,11 @@ test('get a free slot when is possible', async t => {
   const promiseThree = createPromise('three', 150)
 
   t.true(lock.isLocked())
-  await promiseOne
+  order.push(await promiseOne)
   t.true(lock.isLocked())
-  await promiseTwo
+  order.push(await promiseTwo)
   t.true(lock.isLocked())
-  await promiseThree
+  order.push(await promiseThree)
   t.false(lock.isLocked())
   t.is(order.length, 3)
 })
@@ -67,18 +67,17 @@ test('first in, first out', async t => {
   const n = 100
 
   const lock = createLock()
-  const output = []
 
   t.is(lock.isLocked(), false)
 
   const collection = [...Array(n).keys()]
 
-  await Promise.all(
+  const output = await Promise.all(
     collection.map(async index => {
       await delay()
       const release = await lock()
-      output.push(index)
       release()
+      return index
     })
   )
 

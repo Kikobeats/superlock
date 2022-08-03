@@ -1,17 +1,17 @@
-![Last version](https://img.shields.io/github/tag/Kikobeats/lock.svg?style=flat-square)
-[![Coverage Status](https://img.shields.io/coveralls/Kikobeats/lock.svg?style=flat-square)](https://coveralls.io/github/Kikobeats/lock)
-[![NPM Status](https://img.shields.io/npm/dm/lock.svg?style=flat-square)](https://www.npmjs.org/package/lock)
+![Last version](https://img.shields.io/github/tag/@Kikobeats/lock.svg?style=flat-square)
+[![Coverage Status](https://img.shields.io/coveralls/@Kikobeats/lock.svg?style=flat-square)](https://coveralls.io/github/@Kikobeats/lock)
+[![NPM Status](https://img.shields.io/npm/dm/@Kikobeats/lock.svg?style=flat-square)](https://www.npmjs.org/package/@Kikobeats/lock)
 
-> The simplest mutex/semaphore implementation you will find in JavaScript.
+> A mutex/semaphore implementation made easy to use.
 
 ## Why
 
-- Less than 50 lines of code (> 500 bytes)
-- Mutex & Semaphore patterns
-- Node/Deno/Browser support
-- Good performance
-- Promise API style
-- No dependencies
+**@kikobeats/lock** aims to be:
+
+- **Simple**: Designed for usage with `async` and `await`
+- **Powerful**: Mutex & Semaphore patterns supported
+- **Resilient**: Error handling to avoid dead locks
+- **Lightweight**: No dependencies, just ~50 LOC
 
 ## Install
 
@@ -26,19 +26,19 @@ $ npm install @kikobeats/lock --save
 The lock is a mutex by default:
 
 ```js
-const createLock = require('@kikobeats/lock')
+const { withLock } = require('@kikobeats/lock')
 const delay = require('delay')
 
-const lock = createLock()
+const lock = withLock()
 
-const promiseOne = lock.then(release => {
+const promiseOne = lock.then(() => {
   console.log('mutual exclusion is guaranteed')
-  return delay(50).then(release)
+  return delay(50)
 })
 
-const promiseTwo = lock.then(release => {
+const promiseTwo = lock.then(() => {
   console.log('do something')
-  return delay(100).then(release)
+  return delay(100)
 })
 
 Promise.all([promiseOne, promiseTwo])
@@ -46,22 +46,20 @@ Promise.all([promiseOne, promiseTwo])
 
 ### as semaphore
 
-Just pass the concurrency as first argument:
+Just pass the desired concurrency as first argument:
 
 ```js
-const createLock = require('@kikobeats/lock')
+const { withLock } = require('@kikobeats/lock')
 const delay = require('delay')
 
-const lock = createLock(2)
+const lock = withLock(2)
 
 const executions = []
 
 Promise.all(
   [...Array(100).keys()].map(async index => {
     await delay(Math.random() * 100)
-    const release = await lock()
-    executions.push(index)
-    release()
+    return index
   })
 )
 
@@ -70,7 +68,7 @@ console.log(executions)
 
 ## API
 
-### createLock([concurrency])
+### withLock([concurrency])
 
 It returns a new lock.
 

@@ -1,9 +1,13 @@
 {
-  "name": "lock",
+  "name": "@kikobeats/lock",
   "description": "The most simple mutex/semaphore implementation",
   "homepage": "https://nicedoc.io/Kikobeats/lock",
   "version": "0.0.0",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./create": "./src/create.js"
+  },
   "author": {
     "name": "Kiko Beats",
     "email": "josefrancisco.verdu@gmail.com",

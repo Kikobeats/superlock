@@ -1,25 +1,22 @@
 'use strict'
 
-module.exports = (slots = 1) => {
-  const queue = []
+const createLock = require('./create')
 
-  const release = () => {
-    ++slots
-    if (queue.length > 0) queue.shift()()
+const withLock = opts => {
+  const lock = createLock(opts)
+
+  const withLock = async fn => {
+    const release = await lock()
+    try {
+      return await fn()
+    } finally {
+      release()
+    }
   }
 
-  const acquire = resolve => () => {
-    --slots
-    resolve(release)
-  }
+  withLock.isLocked = lock.isLocked
 
-  const lock = () =>
-    new Promise(resolve => {
-      const fn = acquire(resolve)
-      lock.isLocked() ? queue.push(fn) : fn()
-    })
-
-  lock.isLocked = () => slots === 0
-
-  return lock
+  return withLock
 }
+
+module.exports = { withLock, createLock }

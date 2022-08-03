@@ -1,9 +1,9 @@
 'use strict'
 
+const { createLock } = require('@kikobeats/lock')
 const test = require('ava')
 
 const { delay } = require('./helpers')
-const createLock = require('..')
 
 test('get exclusion', async t => {
   const lock = createLock(2)
@@ -31,18 +31,17 @@ test('first in, first out', async t => {
   const n = 100
 
   const lock = createLock(2)
-  const output = []
 
   t.is(lock.isLocked(), false)
 
   const collection = [...Array(n).keys()]
 
-  await Promise.all(
+  const output = await Promise.all(
     collection.map(async index => {
       await delay()
       const release = await lock()
-      output.push(index)
       release()
+      return index
     })
   )
 
