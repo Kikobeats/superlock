@@ -74,8 +74,8 @@ test('first in, first out', async t => {
 
   const output = await Promise.all(
     collection.map(async index => {
-      await delay()
       const release = await lock()
+      await delay()
       release()
       return index
     })

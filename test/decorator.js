@@ -48,3 +48,30 @@ test('take care about errors', async t => {
     t.false(lock.isLocked())
   }
 })
+
+test('first in, first out', async t => {
+  const n = 100
+
+  const lock = withLock(2)
+
+  t.is(lock.isLocked(), false)
+
+  const collection = [...Array(n).keys()]
+
+  const output = await Promise.all(
+    collection.map(index =>
+      lock(async () => {
+        await delay()
+        return index
+      })
+    )
+  )
+
+  t.is(lock.isLocked(), false)
+  t.is(collection.length, output.length)
+
+  t.deepEqual(
+    collection,
+    output.slice().sort((a, b) => a - b)
+  )
+})

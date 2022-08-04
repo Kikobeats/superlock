@@ -32,40 +32,21 @@ const delay = require('delay')
 
 const lock = withLock()
 
-const promiseOne = lock.then(() => {
-  console.log('mutual exclusion is guaranteed')
-  return delay(50)
-})
-
-const promiseTwo = lock.then(() => {
-  console.log('do something')
-  return delay(100)
-})
-
-Promise.all([promiseOne, promiseTwo])
-```
-
-### as semaphore
-
-Just pass the desired concurrency as first argument:
-
-```js
-const { withLock } = require('superlock')
-const delay = require('delay')
-
-const lock = withLock(2)
-
-const executions = []
-
-Promise.all(
-  [...Array(100).keys()].map(async index => {
-    await delay(Math.random() * 100)
-    return index
-  })
+const executions = await Promise.all(
+  [...Array(10).keys()].map(index =>
+    lock(async () => {
+      await delay(Math.random() * 100)
+      return index
+    })
+  )
 )
 
 console.log(executions)
 ```
+
+### as semaphore
+
+Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock.
 
 ## API
 
@@ -78,7 +59,7 @@ const { withLock } = require('superlock')
 
 const lock = createLock()
 
-lock().then(() => {
+await lock(() => {
   /* your code execution */
 })
 ```
