@@ -19,15 +19,6 @@ module.exports = (slots = 1) => {
       lock.isLocked() ? queue.push(fn) : fn()
     })
 
-  lock.withLock = async fn => {
-    const release = await lock()
-    try {
-      return await fn()
-    } finally {
-      release()
-    }
-  }
-
   lock.isLocked = () => slots === 0
 
   return lock
