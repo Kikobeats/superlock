@@ -1,5 +1,5 @@
-![Last version](https://img.shields.io/github/tag/superlock.svg?style=flat-square)
-[![Coverage Status](https://img.shields.io/coveralls/superlock.svg?style=flat-square)](https://coveralls.io/github/superlock)
+![Last version](https://img.shields.io/github/tag/Kikobeats/superlock.svg?style=flat-square)
+[![Coverage Status](https://img.shields.io/coveralls/github/Kikobeats/superlock?style=flat-square)](https://coveralls.io/github/Kikobeats/superlock)
 [![NPM Status](https://img.shields.io/npm/dm/superlock.svg?style=flat-square)](https://www.npmjs.org/package/superlock)
 
 > A mutex/semaphore implementation made easy to use.
