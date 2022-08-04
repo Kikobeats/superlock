@@ -2,7 +2,7 @@
   "name": "superlock",
   "description": "The most simple mutex/semaphore implementation",
   "homepage": "https://nicedoc.io/Kikobeats/lock",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "src/index.js",
   "author": {
     "email": "josefrancisco.verdu@gmail.com",
