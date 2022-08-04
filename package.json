@@ -1,16 +1,12 @@
 {
-  "name": "@kikobeats/lock",
+  "name": "superlock",
   "description": "The most simple mutex/semaphore implementation",
   "homepage": "https://nicedoc.io/Kikobeats/lock",
   "version": "0.0.0",
   "main": "src/index.js",
-  "exports": {
-    ".": "./src/index.js",
-    "./create": "./src/create.js"
-  },
   "author": {
-    "name": "Kiko Beats",
     "email": "josefrancisco.verdu@gmail.com",
+    "name": "Kiko Beats",
     "url": "https://kikobeats.com"
   },
   "repository": {
@@ -20,7 +16,16 @@
   "bugs": {
     "url": "https://github.com/Kikobeats/lock/issues"
   },
-  "keywords": [],
+  "keywords": [
+    "async",
+    "await",
+    "concurrency",
+    "critical",
+    "lock",
+    "mutex",
+    "section",
+    "semaphore"
+  ],
   "devDependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
@@ -40,6 +45,9 @@
   "engines": {
     "node": ">= 14"
   },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "clean": "rm -rf node_modules",
     "contributors": "(git-authors-cli && finepack && git add package.json && git commit -m 'build: contributors' --no-verify) || true",
@@ -56,10 +64,20 @@
     "update:check": "ncu -- --error-level 2"
   },
   "license": "MIT",
+  "ava": {
+    "files": [
+      "!test/helpers.js",
+      "test/**/*.js"
+    ]
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
     ]
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./create": "./src/create.js"
   },
   "nano-staged": {
     "*.js,!*.min.js,": [
@@ -70,12 +88,6 @@
     ],
     "package.json": [
       "finepack"
-    ]
-  },
-  "ava": {
-    "files": [
-      "test/**/*.js",
-      "!test/helpers.js"
     ]
   },
   "simple-git-hooks": {

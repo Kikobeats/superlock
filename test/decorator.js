@@ -1,6 +1,6 @@
 'use strict'
 
-const { withLock } = require('@kikobeats/lock')
+const { withLock } = require('superlock')
 const test = require('ava')
 
 const { delay } = require('./helpers')
