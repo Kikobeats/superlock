@@ -96,7 +96,7 @@ It sets the maximum of concurrency allowed for the lock.
 
 Type: `boolean`
 
-It indicates if there is at least one free concurrency slots in the lock.
+It returns `false` if there is at least one free concurrency slots in the lock.
 
 ## License
 
