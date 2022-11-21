@@ -8,16 +8,17 @@ module.exports = (slots = 1) => {
     if (queue.length > 0) queue.shift()()
   }
 
-  const acquire = resolve => () => {
+  const acquire = resolve => {
     --slots
     resolve(release)
   }
 
   const lock = () =>
-    new Promise(resolve => {
-      const fn = acquire(resolve)
-      lock.isLocked() ? queue.push(fn) : fn()
-    })
+    new Promise(resolve =>
+      lock.isLocked()
+        ? queue.push(acquire.bind(null, resolve))
+        : acquire(resolve)
+    )
 
   lock.isLocked = () => slots === 0
 
