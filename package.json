@@ -4,10 +4,6 @@
   "homepage": "https://github.com/Kikobeats/superlock",
   "version": "1.0.5",
   "main": "src/index.js",
-  "exports": {
-    ".": "./src/index.js",
-    "./create": "./src/create.js"
-  },
   "author": {
     "email": "josefrancisco.verdu@gmail.com",
     "name": "Kiko Beats",
@@ -54,7 +50,7 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules",
-    "contributors": "(npx git-authors-cli && npx finepack --sort-ignore-object-at ava && git add package.json && git commit -m 'build: contributors' --no-verify) || true",
+    "contributors": "(npx git-authors-cli && npx finepack && git add package.json && git commit -m 'build: contributors' --no-verify) || true",
     "coverage": "c8 report --reporter=text-lcov > coverage/lcov.info",
     "lint": "standard",
     "postrelease": "npm run release:tags && npm run release:github && (ci-publish || npm publish --access=public)",
@@ -70,14 +66,18 @@
   "license": "MIT",
   "ava": {
     "files": [
-      "!test/helpers.js",
-      "test/**/*.js"
+      "test/**/*.js",
+      "!test/helpers.js"
     ]
   },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
     ]
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./create": "./src/create.js"
   },
   "nano-staged": {
     "*.js": [
