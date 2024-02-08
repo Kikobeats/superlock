@@ -2,7 +2,7 @@
   "name": "superlock",
   "description": "The most simple mutex/semaphore implementation",
   "homepage": "https://github.com/Kikobeats/superlock",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
