@@ -57,7 +57,7 @@ It returns a function that can be used to wrap any code you want to execute with
 ```js
 const { withLock } = require('superlock')
 
-const lock = createLock()
+const lock = withLock()
 
 await lock(() => {
   /* your code execution */
