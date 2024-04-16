@@ -4,10 +4,6 @@
   "homepage": "https://github.com/Kikobeats/superlock",
   "version": "1.0.8",
   "main": "src/index.js",
-  "exports": {
-    ".": "./src/index.js",
-    "./create": "./src/create.js"
-  },
   "author": {
     "email": "josefrancisco.verdu@gmail.com",
     "name": "Kiko Beats",
@@ -79,6 +75,10 @@
       "@commitlint/config-conventional"
     ]
   },
+  "exports": {
+    ".": "./src/index.js",
+    "./create": "./src/create.js"
+  },
   "nano-staged": {
     "*.js": [
       "prettier-standard",
@@ -91,5 +91,6 @@
   "simple-git-hooks": {
     "commit-msg": "npx commitlint --edit",
     "pre-commit": "npx nano-staged"
-  }
+  },
+  "types": "src/index.d.ts"
 }
