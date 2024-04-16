@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.1.0 (2024-04-16)
+
+
+### Features
+
+* add typescript types ([add4f83](https://github.com/Kikobeats/superlock/commit/add4f834b99596bc315140a8d5b8c02d7f01e66f))
+
 ### 1.0.8 (2024-04-14)
 
 ### 1.0.7 (2024-02-08)
