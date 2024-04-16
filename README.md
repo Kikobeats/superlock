@@ -27,15 +27,15 @@ $ npm install superlock --save
 The lock is a mutex by default:
 
 ```js
+const { setTimeout } = require('timers/promises')
 const { withLock } = require('superlock')
-const delay = require('delay')
 
 const lock = withLock()
 
 const executions = await Promise.all(
   [...Array(10).keys()].map(index =>
     lock(async () => {
-      await delay(Math.random() * 100)
+      await setTimeout(Math.random() * 100)
       return index
     })
   )
