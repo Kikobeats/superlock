@@ -14,6 +14,6 @@ interface WithLockInterface extends WithLock {
   isLocked: () => boolean;
 }
 
-declare function withLock(opts: number): WithLockInterface;
+declare function withLock(opts?: number): WithLockInterface;
 
 export { withLock, createLock };
