@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.1.1 (2024-04-26)
+
+
+### Bug Fixes
+
+* ava ([16d4a3c](https://github.com/Kikobeats/superlock/commit/16d4a3c1ed42d204133baa7c98727dc704bae971))
+
 ## 1.1.0 (2024-04-16)
 
 
