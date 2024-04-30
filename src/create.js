@@ -43,9 +43,7 @@ module.exports = (slots = 1) => {
 
   const lock = () =>
     new Promise(resolve =>
-      lock.isLocked()
-        ? queue.enqueue(acquire.bind(null, resolve))
-        : acquire(resolve)
+      lock.isLocked() ? queue.enqueue(() => acquire(resolve)) : acquire(resolve)
     )
 
   lock.isLocked = () => slots === 0
