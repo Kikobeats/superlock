@@ -6,16 +6,16 @@ class Node {
   }
 }
 
-class DoublyLinkedList {
+class LinkedList {
   enqueue (data) {
-    const node = new Node(data)
     if (!this.head) {
-      this.head = node
-      this.tail = node
+      this.head = new Node(data)
     } else {
-      node.prev = this.tail
-      this.tail.next = node
-      this.tail = node
+      let current = this.head
+      while (current.next) {
+        current = current.next
+      }
+      current.next = new Node(data)
     }
   }
 
@@ -23,14 +23,12 @@ class DoublyLinkedList {
     if (!this.head) return
     const data = this.head.data
     this.head = this.head.next
-    if (this.head) this.head.prev = undefined
-    else this.tail = undefined
     return data
   }
 }
 
 module.exports = (slots = 1) => {
-  const queue = new DoublyLinkedList()
+  const queue = new LinkedList()
 
   const release = () => {
     ++slots
