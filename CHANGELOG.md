@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0-0](https://github.com/Kikobeats/superlock/compare/v1.1.4...v1.2.0-0) (2024-08-19)
+
+
+### Features
+
+* add lock.awaiting() ([acffbbf](https://github.com/Kikobeats/superlock/commit/acffbbf55bce79ac116e195da6a1b2b712e2b9f0))
+
 ### 1.1.4 (2024-08-19)
 
 ### 1.1.3 (2024-05-09)
