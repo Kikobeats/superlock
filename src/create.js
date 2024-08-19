@@ -25,6 +25,16 @@ class LinkedList {
     this.head = this.head.next
     return data
   }
+
+  size () {
+    let count = 0
+    let current = this.head
+    while (current) {
+      count++
+      current = current.next
+    }
+    return count
+  }
 }
 
 module.exports = (slots = 1) => {
@@ -47,6 +57,8 @@ module.exports = (slots = 1) => {
     )
 
   lock.isLocked = () => slots === 0
+
+  lock.awaiting = () => queue.size()
 
   return lock
 }
