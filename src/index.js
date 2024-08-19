@@ -15,6 +15,7 @@ const withLock = opts => {
   }
 
   withLock.isLocked = lock.isLocked
+  withLock.awaiting = lock.awaiting
 
   return withLock
 }
