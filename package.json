@@ -14,12 +14,7 @@
     "name": "Kiko Beats",
     "url": "https://kikobeats.com"
   },
-  "contributors": [
-    {
-      "name": "Tycho Bokdam",
-      "email": "tycho@palmtreecoding.com"
-    }
-  ],
+  "contributors": [],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kikobeats/superlock.git"
