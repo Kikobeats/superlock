@@ -16,4 +16,4 @@ interface WithLockInterface extends WithLock {
 
 declare function withLock(opts?: number): WithLockInterface;
 
-export { withLock, createLock };
+export { withLock, createLock, WithLockInterface };
