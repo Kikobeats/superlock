@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.2.2 (2024-11-19)
+
 ### 1.2.1 (2024-10-14)
 
 ## [1.2.0](https://github.com/Kikobeats/superlock/compare/v1.1.5...v1.2.0) (2024-08-30)
