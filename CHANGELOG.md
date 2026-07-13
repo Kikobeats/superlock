@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/Kikobeats/superlock/compare/v1.2.10...v1.3.0) (2026-07-13)
+
+
+### Features
+
+* abortable acquire and O(1) queue ([#21](https://github.com/Kikobeats/superlock/issues/21)) ([3f28cc9](https://github.com/Kikobeats/superlock/commit/3f28cc9f05678d0f07dacc41094b76928948482d))
+
 ### 1.2.10 (2026-06-18)
 
 ### 1.2.9 (2026-05-24)
