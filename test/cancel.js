@@ -92,7 +92,7 @@ test('awaiting() stops counting a cancelled waiter before it is drained', async 
 
   controller.abort()
   t.is(await cancelled, null)
-  t.is(lock.awaiting(), 1) // cancelled entry no longer counted, though still in the queue
+  t.is(lock.awaiting(), 1) // cancelled entry removed from the queue on abort
 
   releaseA()
   const releaseLive = await live
