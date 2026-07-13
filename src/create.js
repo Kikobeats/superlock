@@ -13,18 +13,27 @@ class LinkedList {
 
   enqueue (data) {
     const node = new Node(data)
-    if (this.head) this.tail.next = node
+    node.prev = this.tail
+    if (this.tail) this.tail.next = node
     else this.head = node
     this.tail = node
     this.length++
+    return node
   }
 
   dequeue () {
     if (!this.head) return
-    const data = this.head.data
-    this.head = this.head.next
-    this.length--
+    const { data } = this.head
+    this.remove(this.head)
     return data
+  }
+
+  remove (node) {
+    if (node.prev) node.prev.next = node.next
+    else this.head = node.next
+    if (node.next) node.next.prev = node.prev
+    else this.tail = node.prev
+    this.length--
   }
 
   size () {
@@ -34,15 +43,11 @@ class LinkedList {
 
 module.exports = (slots = 1) => {
   const queue = new LinkedList()
-  let cancelled = 0
 
   const release = () => {
     ++slots
-    let waiter
-    while ((waiter = queue.dequeue()) !== undefined) {
-      if (waiter.cancelled) --cancelled
-      else return waiter.acquire()
-    }
+    const waiter = queue.dequeue()
+    if (waiter) return waiter.acquire()
   }
 
   const acquire = resolve => {
@@ -55,12 +60,12 @@ module.exports = (slots = 1) => {
       if (signal?.aborted) return resolve(null)
       if (!lock.isLocked()) return acquire(resolve)
 
-      const waiter = { cancelled: false, acquire: () => acquire(resolve) }
+      const waiter = { acquire: () => acquire(resolve) }
+      const node = queue.enqueue(waiter)
 
       if (signal !== undefined) {
         const onAbort = () => {
-          waiter.cancelled = true
-          ++cancelled
+          queue.remove(node)
           resolve(null)
         }
         waiter.acquire = () => {
@@ -69,13 +74,11 @@ module.exports = (slots = 1) => {
         }
         signal.addEventListener('abort', onAbort, { once: true })
       }
-
-      queue.enqueue(waiter)
     })
 
   lock.isLocked = () => slots === 0
 
-  lock.awaiting = () => queue.size() - cancelled
+  lock.awaiting = () => queue.size()
 
   return lock
 }
