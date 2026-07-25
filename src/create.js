@@ -63,7 +63,10 @@ module.exports = (slots = 1) => {
       const waiter = { acquire: () => acquire(resolve) }
       const node = queue.enqueue(waiter)
 
-      if (signal !== undefined) {
+      // null means "no signal" (same as undefined). Treat only real signals as
+      // abortable — otherwise addEventListener throws after enqueue and leaves a
+      // zombie waiter whose acquire() also throws on release.
+      if (signal != null) {
         const onAbort = () => {
           queue.remove(node)
           resolve(null)
@@ -72,7 +75,12 @@ module.exports = (slots = 1) => {
           signal.removeEventListener('abort', onAbort)
           acquire(resolve)
         }
-        signal.addEventListener('abort', onAbort, { once: true })
+        try {
+          signal.addEventListener('abort', onAbort, { once: true })
+        } catch (error) {
+          queue.remove(node)
+          throw error
+        }
       }
     })
 
