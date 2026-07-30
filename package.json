@@ -2,7 +2,7 @@
   "name": "superlock",
   "description": "Minimal async mutex and semaphore for serializing critical sections in Node.js.",
   "homepage": "https://github.com/Kikobeats/superlock",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "types": "src/index.d.ts",
   "main": "src/index.js",
   "exports": {
