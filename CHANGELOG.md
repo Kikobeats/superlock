@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.3.5 (2026-08-05)
+
+
+### Bug Fixes
+
+* treat null signal as no cancellation under contention ([#24](https://github.com/Kikobeats/superlock/issues/24)) ([03f66a4](https://github.com/Kikobeats/superlock/commit/03f66a453497d4301e87c8a337d01993fcc92fda))
+
 ### 1.3.4 (2026-08-03)
 
 ### 1.3.3 (2026-07-30)
