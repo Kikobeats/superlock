@@ -173,3 +173,57 @@ test('withLock forwards a signal and skips the fn when aborted while queued', as
 
   t.false(ran)
 })
+
+test('null signal is treated as no signal under contention', async t => {
+  const lock = createLock(1)
+  const releaseA = await lock()
+
+  const pending = lock(null)
+  t.is(lock.awaiting(), 1)
+
+  releaseA()
+  const releaseB = await pending
+  t.truthy(releaseB)
+  t.true(lock.isLocked())
+  releaseB()
+  t.false(lock.isLocked())
+})
+
+test('null signal does not make the holder release throw', async t => {
+  const guarded = withLock(1)
+
+  let releaseHeld
+  const held = guarded(
+    () =>
+      new Promise(resolve => {
+        releaseHeld = () => resolve('work-done')
+      })
+  )
+
+  const pending = guarded(() => Promise.resolve('next'), null)
+  await Promise.resolve()
+  t.is(guarded.awaiting(), 1)
+  t.is(typeof releaseHeld, 'function')
+
+  releaseHeld()
+  t.is(await held, 'work-done')
+  t.is(await pending, 'next')
+})
+
+test('a non-AbortSignal argument is rejected before taking a slot', async t => {
+  const lock = createLock(1)
+
+  await t.throwsAsync(lock({ aborted: false }), { instanceOf: TypeError })
+  t.false(lock.isLocked())
+
+  const releaseA = await lock()
+
+  const pending = lock({ aborted: false })
+  await t.throwsAsync(pending, { instanceOf: TypeError })
+  t.is(lock.awaiting(), 0)
+
+  releaseA()
+  t.false(lock.isLocked())
+  const releaseB = await lock()
+  releaseB()
+})

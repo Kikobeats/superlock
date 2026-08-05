@@ -57,13 +57,16 @@ module.exports = (slots = 1) => {
 
   const lock = signal =>
     new Promise(resolve => {
+      if (signal != null && typeof signal.addEventListener !== 'function') {
+        throw new TypeError('`signal` needs to be an AbortSignal.')
+      }
       if (signal?.aborted) return resolve(null)
       if (!lock.isLocked()) return acquire(resolve)
 
       const waiter = { acquire: () => acquire(resolve) }
       const node = queue.enqueue(waiter)
 
-      if (signal !== undefined) {
+      if (signal != null) {
         const onAbort = () => {
           queue.remove(node)
           resolve(null)
