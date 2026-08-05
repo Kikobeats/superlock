@@ -57,15 +57,15 @@ module.exports = (slots = 1) => {
 
   const lock = signal =>
     new Promise(resolve => {
+      if (signal != null && typeof signal.addEventListener !== 'function') {
+        throw new TypeError('`signal` needs to be an AbortSignal.')
+      }
       if (signal?.aborted) return resolve(null)
       if (!lock.isLocked()) return acquire(resolve)
 
       const waiter = { acquire: () => acquire(resolve) }
       const node = queue.enqueue(waiter)
 
-      // null means "no signal" (same as undefined). Treat only real signals as
-      // abortable — otherwise addEventListener throws after enqueue and leaves a
-      // zombie waiter whose acquire() also throws on release.
       if (signal != null) {
         const onAbort = () => {
           queue.remove(node)
@@ -75,12 +75,7 @@ module.exports = (slots = 1) => {
           signal.removeEventListener('abort', onAbort)
           acquire(resolve)
         }
-        try {
-          signal.addEventListener('abort', onAbort, { once: true })
-        } catch (error) {
-          queue.remove(node)
-          throw error
-        }
+        signal.addEventListener('abort', onAbort, { once: true })
       }
     })
 

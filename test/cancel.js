@@ -200,8 +200,6 @@ test('null signal does not make the holder release throw', async t => {
       })
   )
 
-  // Contended acquire with null must queue like a plain acquire, not reject
-  // and leave a zombie that breaks the holder's release().
   const pending = guarded(() => Promise.resolve('next'), null)
   await Promise.resolve()
   t.is(guarded.awaiting(), 1)
@@ -212,8 +210,12 @@ test('null signal does not make the holder release throw', async t => {
   t.is(await pending, 'next')
 })
 
-test('a non-AbortSignal argument does not leave a zombie waiter', async t => {
+test('a non-AbortSignal argument is rejected before taking a slot', async t => {
   const lock = createLock(1)
+
+  await t.throwsAsync(lock({ aborted: false }), { instanceOf: TypeError })
+  t.false(lock.isLocked())
+
   const releaseA = await lock()
 
   const pending = lock({ aborted: false })
