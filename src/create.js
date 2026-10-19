@@ -1,45 +1,6 @@
 'use strict'
 
-class Node {
-  constructor (data) {
-    this.data = data
-  }
-}
-
-class LinkedList {
-  constructor () {
-    this.length = 0
-  }
-
-  enqueue (data) {
-    const node = new Node(data)
-    node.prev = this.tail
-    if (this.tail) this.tail.next = node
-    else this.head = node
-    this.tail = node
-    this.length++
-    return node
-  }
-
-  dequeue () {
-    if (!this.head) return
-    const { data } = this.head
-    this.remove(this.head)
-    return data
-  }
-
-  remove (node) {
-    if (node.prev) node.prev.next = node.next
-    else this.head = node.next
-    if (node.next) node.next.prev = node.prev
-    else this.tail = node.prev
-    this.length--
-  }
-
-  size () {
-    return this.length
-  }
-}
+const LinkedList = require('./linked-list')
 
 module.exports = (slots = 1) => {
   const queue = new LinkedList()

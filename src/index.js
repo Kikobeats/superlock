@@ -1,5 +1,6 @@
 'use strict'
 
+const createFairLock = require('./fair')
 const createLock = require('./create')
 
 const withLock = opts => {
@@ -21,4 +22,4 @@ const withLock = opts => {
   return withLock
 }
 
-module.exports = { withLock, createLock }
+module.exports = { withLock, createLock, createFairLock }
