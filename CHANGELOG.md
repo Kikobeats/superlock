@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.4.0 (2026-10-19)
+
+
+### Features
+
+* add an opt-in per-key fair lock ([675de6b](https://github.com/Kikobeats/superlock/commit/675de6b5480fd3c97009ab376cda3653494a51eb))
+
 ### 1.3.5 (2026-08-05)
 
 
