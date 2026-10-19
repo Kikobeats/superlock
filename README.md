@@ -9,9 +9,9 @@
 **superlock** aims to be:
 
 - **Simple**: Designed for usage with `async` and `await`
-- **Powerful**: Mutex & Semaphore patterns supported
+- **Powerful**: Mutex, semaphore, and a per-key fair lock
 - **Secure**: Auto lock release toa void dead locks
-- **Lightweight**: No dependencies, just ~50 LOC
+- **Lightweight**: No dependencies
 - **Well-tested**: 100% code coverage
 
 ## Install
@@ -47,6 +47,30 @@ console.log(executions)
 ### as semaphore
 
 Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock.
+
+### per key
+
+`withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
+
+`createFairLock` keeps a queue per key and rotates a free slot across keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
+
+```js
+const { createFairLock } = require('superlock')
+
+const lock = createFairLock()
+
+const run = async (userId, fn) => {
+  const release = await lock(undefined, userId)
+  if (!release) return
+  try {
+    return await fn()
+  } finally {
+    release()
+  }
+}
+```
+
+A second queued call for the same user waits until each other waiting user has had a turn. Pass an `AbortSignal` as the first argument when the caller can give up. Aborting while the call is queued resolves `null`.
 
 ### with cancellation
 
@@ -109,11 +133,79 @@ Type: `AbortSignal`
 
 When provided, aborting it drops the acquisition while it is still waiting in the queue: no slot is taken and the wrapped function never runs.
 
+### createLock([slots=1])
+
+The FIFO semaphore behind `withLock`. The promise resolves to a release function you call when the work is done:
+
+```js
+const { createLock } = require('superlock')
+
+const lock = createLock()
+const release = await lock()
+
+try {
+  /* your code execution */
+} finally {
+  release()
+}
+```
+
+An optional `AbortSignal` is the first argument. If it aborts while the call is queued, the promise resolves `null` and no slot is taken.
+
+#### slots
+
+Type: `number`<br>
+Default: `1`
+
+How many callers can hold the lock at once.
+
+### createFairLock([slots=1])
+
+Same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue.
+
+```js
+const { createFairLock } = require('superlock')
+
+const lock = createFairLock()
+const release = await lock(undefined, key)
+
+release()
+```
+
+One key is served in arrival order. Across keys, a free slot goes to the next key that is waiting, then wraps around. A key with nobody left waiting leaves the rotation.
+
+`null` and a missing signal do not cancel. A value that is not an `AbortSignal` throws `TypeError`. Aborting after the slot was granted does nothing.
+
+#### slots
+
+Type: `number`<br>
+Default: `1`
+
+How many callers can hold the lock at once.
+
+#### signal
+
+Type: `AbortSignal`
+
+Optional first argument. Aborting it while the call is queued resolves `null` and does not take a slot.
+
+#### key
+
+Type: any
+
+Optional second argument. Identifies the queue.
+
 ### .isLocked()
 
 Type: `boolean`
 
-It returns `false` if there is at least one free concurrency slots in the lock.
+It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `createFairLock` expose it too.
+
+### .awaiting()
+
+Type: `number`
+
+How many callers are waiting for a slot. On a fair lock that is the total across every key.
 
 ## License
 
