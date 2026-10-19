@@ -161,7 +161,7 @@ How many callers can hold the lock at once.
 
 ### createFairQueue([slots=1])
 
-Fair queuing on the same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue. `createFairLock` is this function.
+[Fair queuing](https://en.wikipedia.org/wiki/Fair_queuing) on the same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue. `createFairLock` is this function.
 
 ```js
 const { createFairQueue } = require('superlock')
