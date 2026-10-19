@@ -9,7 +9,7 @@
 **superlock** aims to be:
 
 - **Simple**: Designed for usage with `async` and `await`
-- **Powerful**: Mutex, semaphore, and a per-key fair lock
+- **Powerful**: Mutex, semaphore, and fair queuing
 - **Secure**: Auto lock release toa void dead locks
 - **Lightweight**: No dependencies
 - **Well-tested**: 100% code coverage
@@ -48,16 +48,16 @@ console.log(executions)
 
 Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock.
 
-### per key
+### fair queuing
 
 `withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
 
-`createFairLock` keeps a queue per key and rotates a free slot across keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
+`createFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
 
 ```js
-const { createFairLock } = require('superlock')
+const { createFairQueue } = require('superlock')
 
-const lock = createFairLock()
+const lock = createFairQueue()
 
 const run = async (userId, fn) => {
   const release = await lock(undefined, userId)
@@ -159,14 +159,14 @@ Default: `1`
 
 How many callers can hold the lock at once.
 
-### createFairLock([slots=1])
+### createFairQueue([slots=1])
 
-Same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue.
+Fair queuing on the same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue. `createFairLock` is this function.
 
 ```js
-const { createFairLock } = require('superlock')
+const { createFairQueue } = require('superlock')
 
-const lock = createFairLock()
+const lock = createFairQueue()
 const release = await lock(undefined, key)
 
 release()
@@ -199,7 +199,7 @@ Optional second argument. Identifies the queue.
 
 Type: `boolean`
 
-It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `createFairLock` expose it too.
+It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `createFairQueue` expose it too.
 
 ### .awaiting()
 
