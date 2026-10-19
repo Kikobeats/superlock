@@ -52,25 +52,19 @@ Just call `withLock(n)` being `n` the maximum of concurrency desired for the loc
 
 `withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
 
-`withFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
+`withFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue.
 
 ```js
 const { withFairQueue } = require('superlock')
 
-const lock = withFairQueue()
+const queue = withFairQueue()
 
-const run = async (userId, fn) => {
-  const release = await lock(undefined, userId)
-  if (!release) return
-  try {
-    return await fn()
-  } finally {
-    release()
-  }
-}
+await queue(async () => {
+  /* your code execution */
+}, userId)
 ```
 
-A second queued call for the same user waits until each other waiting user has had a turn. Pass an `AbortSignal` as the first argument when the caller can give up. Aborting while the call is queued resolves `null`.
+A second queued call for the same user waits until each other waiting user has had a turn. Pass an `AbortSignal` as the third argument when the caller can give up. Aborting while the call is queued skips the function.
 
 ### with cancellation
 
@@ -159,29 +153,29 @@ Default: `1`
 
 How many callers can hold the lock at once.
 
-### withFairQueue([slots=1])
+### createFairQueue([slots=1])
 
-[Fair queuing](https://en.wikipedia.org/wiki/Fair_queuing) on the same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue. `createFairLock` is this function.
+The fair queue behind `withFairQueue`, in the same way `createLock` is behind `withLock`. The promise resolves to a release function you call when the work is done. `createFairLock` is this function.
 
 ```js
-const { withFairQueue } = require('superlock')
+const { createFairQueue } = require('superlock')
 
-const lock = withFairQueue()
-const release = await lock(undefined, key)
+const queue = createFairQueue()
+const release = await queue(undefined, key)
 
 release()
 ```
 
 One key is served in arrival order. Across keys, a free slot goes to the next key that is waiting, then wraps around. A key with nobody left waiting leaves the rotation.
 
-`null` and a missing signal do not cancel. A value that is not an `AbortSignal` throws `TypeError`. Aborting after the slot was granted does nothing.
+A missing key shares one queue. Any other value, including `null`, is its own queue. `null` and a missing signal do not cancel. A value that is not an `AbortSignal` throws `TypeError`. Aborting after the slot was granted does nothing.
 
 #### slots
 
 Type: `number`<br>
 Default: `1`
 
-How many callers can hold the lock at once.
+How many callers can hold the queue at once.
 
 #### signal
 
@@ -195,11 +189,54 @@ Type: any
 
 Optional second argument. Identifies the queue.
 
+### withFairQueue([slots=1])
+
+It returns a function that runs your code under [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing). The queue is released when the function finishes, including when it throws.
+
+```js
+const { withFairQueue } = require('superlock')
+
+const queue = withFairQueue()
+
+await queue(() => {
+  /* your code execution */
+}, key)
+```
+
+An `AbortSignal` is an optional third argument:
+
+```js
+await queue(() => {
+  /* your code execution */
+}, key, signal)
+```
+
+If `signal` aborts while the call is still queued, the function is skipped and the call resolves `undefined`.
+
+#### slots
+
+Type: `number`<br>
+Default: `1`
+
+How many callers can hold the queue at once.
+
+#### key
+
+Type: any
+
+Optional second argument. Identifies the queue. A missing key shares one queue.
+
+#### signal
+
+Type: `AbortSignal`
+
+Optional third argument. Aborting it while the call is queued skips the function.
+
 ### .isLocked()
 
 Type: `boolean`
 
-It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `withFairQueue` expose it too.
+It returns `false` if there is at least one free concurrency slots in the lock. `createLock`, `createFairQueue`, and `withFairQueue` expose it too.
 
 ### .awaiting()
 

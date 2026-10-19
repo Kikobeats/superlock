@@ -1,6 +1,6 @@
 'use strict'
 
-const { withFairQueue, createLock } = require('superlock')
+const { createFairQueue, createLock } = require('superlock')
 
 const cycles = 100_000
 
@@ -19,10 +19,10 @@ const elapsed = async (lock, keys) => {
 const main = async () => {
   const slots = 8
   await elapsed(createLock(slots), 0)
-  await elapsed(withFairQueue(slots), 1)
+  await elapsed(createFairQueue(slots), 1)
   for (const keys of [1, 10, 1000]) {
     const fifo = await elapsed(createLock(slots), 0)
-    const fair = await elapsed(withFairQueue(slots), keys)
+    const fair = await elapsed(createFairQueue(slots), keys)
     const ratio = fair / fifo
     const budget = keys < 1000 ? 'budget 1.10' : 'recorded'
     console.log(

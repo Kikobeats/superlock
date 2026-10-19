@@ -1,6 +1,6 @@
 'use strict'
 
-const withFairQueue = require('./fair')
+const createFairQueue = require('./fair')
 const createLock = require('./create')
 
 const withLock = opts => {
@@ -22,9 +22,29 @@ const withLock = opts => {
   return withLock
 }
 
+const withFairQueue = opts => {
+  const lock = createFairQueue(opts)
+
+  const withFairQueue = async (fn, key, signal) => {
+    const release = await lock(signal, key)
+    if (!release) return
+    try {
+      return await fn()
+    } finally {
+      release()
+    }
+  }
+
+  withFairQueue.isLocked = lock.isLocked
+  withFairQueue.awaiting = lock.awaiting
+
+  return withFairQueue
+}
+
 module.exports = {
   withLock,
   createLock,
   withFairQueue,
-  createFairLock: withFairQueue
+  createFairQueue,
+  createFairLock: createFairQueue
 }
