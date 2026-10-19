@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.4.2 (2026-10-19)
+
+
+### Bug Fixes
+
+* keep round-robin moving after a key leaves the ring ([#26](https://github.com/Kikobeats/superlock/issues/26)) ([6ced49d](https://github.com/Kikobeats/superlock/commit/6ced49d6f0ae3b52a5cd666639492c8d123c64f9))
+
 ### 1.4.1 (2026-10-19)
 
 ## 1.4.0 (2026-10-19)
