@@ -46,7 +46,25 @@ console.log(executions)
 
 ### as semaphore
 
-Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock.
+Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock:
+
+```js
+const { setTimeout } = require('timers/promises')
+const { withLock } = require('superlock')
+
+const lock = withLock(2)
+
+const executions = await Promise.all(
+  [...Array(10).keys()].map(index =>
+    lock(async () => {
+      await setTimeout(Math.random() * 100)
+      return index
+    })
+  )
+)
+
+console.log(executions)
+```
 
 ### as fair queue
 
