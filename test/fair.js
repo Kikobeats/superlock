@@ -360,6 +360,49 @@ test('null signal acquires like a missing signal', async t => {
   t.false(lock.isLocked())
 })
 
+test('a partial signal rejects before it is queued', async t => {
+  const lock = createFairQueue(1)
+  const release = await lock(undefined, 'a')
+  const fake = { addEventListener () {}, aborted: false }
+  await t.throwsAsync(lock(fake, 'b'), { instanceOf: TypeError })
+  t.is(lock.awaiting(), 0)
+  t.true(lock.isLocked())
+  release()
+  t.false(lock.isLocked())
+})
+
+test('aborting the rest of a NaN key continues with the next key', async t => {
+  const lock = createFairQueue(1)
+  const held = await lock(undefined, 'held')
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(Number.isNaN(key) ? 'nan' : key)
+      return release
+    })
+
+  const first = track('a')
+  const again = track('a')
+  const middle = track(NaN)
+  const controller = new AbortController()
+  const dropped = lock(controller.signal, NaN)
+  const last = track('c')
+
+  held()
+  const releaseFirst = await first
+  releaseFirst()
+  const releaseMiddle = await middle
+  controller.abort()
+  t.is(await dropped, null)
+  releaseMiddle()
+  const releaseLast = await last
+  releaseLast()
+  const releaseAgain = await again
+  releaseAgain()
+
+  t.deepEqual(order, ['a', 'nan', 'c', 'a'])
+})
+
 test('a non-signal rejects', async t => {
   const lock = createFairQueue(1)
   await t.throwsAsync(lock('nope', 'a'), { instanceOf: TypeError })

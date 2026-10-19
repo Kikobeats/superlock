@@ -57,7 +57,12 @@ module.exports = (slots = 1) => {
 
   const lock = (signal, key) =>
     new Promise(resolve => {
-      if (signal != null && typeof signal.addEventListener !== 'function') {
+      if (
+        signal != null &&
+        (typeof signal.addEventListener !== 'function' ||
+          typeof signal.removeEventListener !== 'function' ||
+          typeof signal.aborted !== 'boolean')
+      ) {
         throw new TypeError('`signal` needs to be an AbortSignal.')
       }
       const id = key === undefined ? SHARED : key
@@ -76,9 +81,9 @@ module.exports = (slots = 1) => {
           entry.queue.remove(waiter.node)
           waiting--
           if (entry.queue.size() === 0) {
-            const key = entry.key
+            const current = queues.get(last) === entry
             const cursor = drop(entry)
-            if (last === key) last = cursor
+            if (current) last = cursor
           }
           resolve(null)
         }
