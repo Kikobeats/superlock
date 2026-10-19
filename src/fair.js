@@ -12,8 +12,10 @@ module.exports = (slots = 1) => {
   let last = NONE
 
   const drop = entry => {
+    const predecessor = entry.ringNode.prev
     ring.remove(entry.ringNode)
     queues.delete(entry.key)
+    return predecessor ? predecessor.data : NONE
   }
 
   const enqueue = (key, waiter) => {
@@ -35,8 +37,11 @@ module.exports = (slots = 1) => {
     const entry = queues.get(node.data)
     const waiter = entry.queue.dequeue()
     waiting--
-    if (entry.queue.size() === 0) drop(entry)
-    last = entry.key
+    // A key that just left the ring must not stay as `last`. The next grant
+    // would miss it in the map and restart at the head, skipping whoever
+    // was behind it.
+    if (entry.queue.size() === 0) last = drop(entry)
+    else last = entry.key
     waiter.acquire()
   }
 
@@ -45,9 +50,8 @@ module.exports = (slots = 1) => {
     grant()
   }
 
-  const acquire = (resolve, key) => {
+  const acquire = resolve => {
     --slots
-    last = key
     resolve(release)
   }
 
@@ -58,21 +62,29 @@ module.exports = (slots = 1) => {
       }
       const id = key === undefined ? SHARED : key
       if (signal?.aborted) return resolve(null)
-      if (!lock.isLocked()) return acquire(resolve, id)
+      if (!lock.isLocked()) {
+        last = id
+        return acquire(resolve)
+      }
 
-      const waiter = { acquire: () => acquire(resolve, id) }
+      const waiter = { acquire: () => acquire(resolve) }
       enqueue(id, waiter)
 
       if (signal != null) {
         const onAbort = () => {
-          waiter.entry.queue.remove(waiter.node)
+          const entry = waiter.entry
+          entry.queue.remove(waiter.node)
           waiting--
-          if (waiter.entry.queue.size() === 0) drop(waiter.entry)
+          if (entry.queue.size() === 0) {
+            const key = entry.key
+            const cursor = drop(entry)
+            if (last === key) last = cursor
+          }
           resolve(null)
         }
         waiter.acquire = () => {
           signal.removeEventListener('abort', onAbort)
-          acquire(resolve, id)
+          acquire(resolve)
         }
         signal.addEventListener('abort', onAbort, { once: true })
       }

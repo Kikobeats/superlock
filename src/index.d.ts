@@ -9,7 +9,7 @@ interface LockInterface extends Lock {
 
 declare function createLock(slots?: number): LockInterface;
 
-declare type FairLock = (signal: AbortSignal | undefined | null, key?: unknown) => Promise<Release | null>;
+declare type FairLock = (signal?: AbortSignal | null, key?: unknown) => Promise<Release | null>;
 
 interface FairLockInterface extends FairLock {
   isLocked: () => boolean;

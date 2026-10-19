@@ -29,6 +29,139 @@ test('rotates the next slot across keys', async t => {
   t.false(lock.isLocked())
 })
 
+test('a drained key does not skip the keys behind it', async t => {
+  const lock = createFairLock(1)
+  const release = await lock(undefined, 'held')
+  const order = []
+  const wait = key =>
+    lock(undefined, key).then(next => {
+      order.push(key)
+      return next
+    })
+
+  const first = wait('a')
+  const middle = wait('b')
+  const last = wait('c')
+  const again = wait('a')
+
+  release()
+  for (const pending of [first, middle, last, again]) (await pending)()
+
+  t.deepEqual(order, ['a', 'b', 'c', 'a'])
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('aborting the rest of a served key continues with the next key', async t => {
+  const lock = createFairLock(1)
+  const held = await lock(undefined, 'held')
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const first = track('a')
+  const again = track('a')
+  const middle = track('b')
+  const controller = new AbortController()
+  const dropped = lock(controller.signal, 'b')
+  const last = track('c')
+
+  held()
+  const releaseFirst = await first
+  releaseFirst()
+  const releaseMiddle = await middle
+  controller.abort()
+  t.is(await dropped, null)
+  releaseMiddle()
+  const releaseLast = await last
+  releaseLast()
+  const releaseAgain = await again
+  releaseAgain()
+
+  t.deepEqual(order, ['a', 'b', 'c', 'a'])
+})
+
+test('a key can wait again after it left the ring', async t => {
+  const lock = createFairLock(1)
+  const release = await lock(undefined, 'a')
+  const controller = new AbortController()
+  const aborted = lock(controller.signal, 'b')
+  controller.abort()
+  t.is(await aborted, null)
+
+  const again = lock(undefined, 'b')
+  t.is(lock.awaiting(), 1)
+  release()
+  const releaseAgain = await again
+  t.is(lock.awaiting(), 0)
+  releaseAgain()
+  t.false(lock.isLocked())
+})
+
+test('null is its own key', async t => {
+  const lock = createFairLock(1)
+  const held = await lock(undefined, null)
+  const order = []
+  const track = (key, label) =>
+    lock(undefined, key).then(release => {
+      order.push(label)
+      return release
+    })
+
+  const nullWaiter = track(null, 'null')
+  const shared = track(undefined, 'shared')
+
+  held()
+  const releaseShared = await shared
+  releaseShared()
+  const releaseNull = await nullWaiter
+  releaseNull()
+
+  t.deepEqual(order, ['shared', 'null'])
+})
+
+test('two slots can be held while a third waits', async t => {
+  const lock = createFairLock(2)
+  const releaseA = await lock(undefined, 'a')
+  const releaseB = await lock(undefined, 'b')
+  t.true(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+
+  let woke = false
+  const pending = lock(undefined, 'c').then(release => {
+    woke = true
+    return release
+  })
+  t.is(lock.awaiting(), 1)
+  t.false(woke)
+
+  releaseA()
+  const releaseC = await pending
+  t.true(woke)
+  t.true(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+
+  releaseB()
+  releaseC()
+  t.false(lock.isLocked())
+})
+
+test('defaults to a single slot', async t => {
+  const lock = createFairLock()
+  const release = await lock()
+  t.true(lock.isLocked())
+  const pending = lock()
+  t.is(lock.awaiting(), 1)
+  release()
+  const releaseNext = await pending
+  releaseNext()
+  t.false(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+})
+
 test('keeps FIFO order within a key', async t => {
   const lock = createFairLock(1)
   const releaseA = await lock(undefined, 'a')
