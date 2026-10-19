@@ -48,16 +48,16 @@ console.log(executions)
 
 Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock.
 
-### fair queuing
+### as fair queue
 
 `withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
 
-`createFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
+`withFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue. You call the release function yourself:
 
 ```js
-const { createFairQueue } = require('superlock')
+const { withFairQueue } = require('superlock')
 
-const lock = createFairQueue()
+const lock = withFairQueue()
 
 const run = async (userId, fn) => {
   const release = await lock(undefined, userId)
@@ -159,14 +159,14 @@ Default: `1`
 
 How many callers can hold the lock at once.
 
-### createFairQueue([slots=1])
+### withFairQueue([slots=1])
 
 [Fair queuing](https://en.wikipedia.org/wiki/Fair_queuing) on the same contract as `createLock`, plus a key. A missing key shares one queue. Any other value, including `null`, is its own queue. `createFairLock` is this function.
 
 ```js
-const { createFairQueue } = require('superlock')
+const { withFairQueue } = require('superlock')
 
-const lock = createFairQueue()
+const lock = withFairQueue()
 const release = await lock(undefined, key)
 
 release()
@@ -199,7 +199,7 @@ Optional second argument. Identifies the queue.
 
 Type: `boolean`
 
-It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `createFairQueue` expose it too.
+It returns `false` if there is at least one free concurrency slots in the lock. `createLock` and `withFairQueue` expose it too.
 
 ### .awaiting()
 

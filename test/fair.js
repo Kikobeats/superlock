@@ -1,14 +1,14 @@
 'use strict'
 
-const { createFairLock, createFairQueue, createLock } = require('superlock')
+const { createFairLock, withFairQueue, createLock } = require('superlock')
 const test = require('ava')
 
-test('createFairLock is createFairQueue', t => {
-  t.is(createFairLock, createFairQueue)
+test('createFairLock is withFairQueue', t => {
+  t.is(createFairLock, withFairQueue)
 })
 
 test('rotates the next slot across keys', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   const pending = new Map()
   for (const key of ['a', 'b', 'a', 'b']) {
@@ -34,7 +34,7 @@ test('rotates the next slot across keys', async t => {
 })
 
 test('a drained key does not skip the keys behind it', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(undefined, 'held')
   const order = []
   const wait = key =>
@@ -57,7 +57,7 @@ test('a drained key does not skip the keys behind it', async t => {
 })
 
 test('aborting the rest of a served key continues with the next key', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const held = await lock(undefined, 'held')
   const order = []
   const track = key =>
@@ -89,7 +89,7 @@ test('aborting the rest of a served key continues with the next key', async t =>
 })
 
 test('a key can wait again after it left the ring', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(undefined, 'a')
   const controller = new AbortController()
   const aborted = lock(controller.signal, 'b')
@@ -106,7 +106,7 @@ test('a key can wait again after it left the ring', async t => {
 })
 
 test('null is its own key', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const held = await lock(undefined, null)
   const order = []
   const track = (key, label) =>
@@ -128,7 +128,7 @@ test('null is its own key', async t => {
 })
 
 test('two slots can be held while a third waits', async t => {
-  const lock = createFairQueue(2)
+  const lock = withFairQueue(2)
   const releaseA = await lock(undefined, 'a')
   const releaseB = await lock(undefined, 'b')
   t.true(lock.isLocked())
@@ -154,7 +154,7 @@ test('two slots can be held while a third waits', async t => {
 })
 
 test('defaults to a single slot', async t => {
-  const lock = createFairQueue()
+  const lock = withFairQueue()
   const release = await lock()
   t.true(lock.isLocked())
   const pending = lock()
@@ -167,7 +167,7 @@ test('defaults to a single slot', async t => {
 })
 
 test('keeps FIFO order within a key', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   const granted = []
   const first = lock(undefined, 'a').then(release => {
@@ -189,7 +189,7 @@ test('keeps FIFO order within a key', async t => {
 })
 
 test('a single key is served in arrival order', async t => {
-  const fair = createFairQueue(1)
+  const fair = withFairQueue(1)
   const fifo = createLock(1)
   const run = async lock => {
     const granted = []
@@ -209,7 +209,7 @@ test('a single key is served in arrival order', async t => {
 })
 
 test('a key that is not waiting gets the free slot', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   let b = false
   const pending = lock(undefined, 'b').then(release => {
@@ -226,7 +226,7 @@ test('a key that is not waiting gets the free slot', async t => {
 })
 
 test('aborting a queued acquire resolves to null', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   const controller = new AbortController()
   const pending = lock(controller.signal, 'b')
@@ -243,7 +243,7 @@ test('aborting a queued acquire resolves to null', async t => {
 })
 
 test('an already-aborted signal resolves to null without taking a slot', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const controller = new AbortController()
   controller.abort()
 
@@ -257,7 +257,7 @@ test('an already-aborted signal resolves to null without taking a slot', async t
 })
 
 test('a cancelled waiter does not steal the slot from a live one', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   const controller = new AbortController()
   const order = []
@@ -282,7 +282,7 @@ test('a cancelled waiter does not steal the slot from a live one', async t => {
 })
 
 test('aborting after the slot was granted is a no-op', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const releaseA = await lock(undefined, 'a')
   const controller = new AbortController()
   const pendingB = lock(controller.signal, 'b')
@@ -300,7 +300,7 @@ test('aborting after the slot was granted is a no-op', async t => {
 })
 
 test('null signal acquires like a missing signal', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(null, 'a')
   t.true(lock.isLocked())
   release()
@@ -308,13 +308,13 @@ test('null signal acquires like a missing signal', async t => {
 })
 
 test('a non-signal rejects', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   await t.throwsAsync(lock('nope', 'a'), { instanceOf: TypeError })
   t.false(lock.isLocked())
 })
 
 test('an empty key leaves the ring', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(undefined, 'held')
   const controllers = []
   const pending = []
@@ -338,7 +338,7 @@ test('an empty key leaves the ring', async t => {
 })
 
 test('awaiting counts every key', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(undefined, 'a')
   const secondA = lock(undefined, 'a')
   const b = lock(undefined, 'b')
@@ -361,7 +361,7 @@ test('awaiting counts every key', async t => {
 })
 
 test('aborting one waiter of a key leaves the rest of that key', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock(undefined, 'a')
   const controller = new AbortController()
   const aborted = lock(controller.signal, 'b')
@@ -377,7 +377,7 @@ test('aborting one waiter of a key leaves the rest of that key', async t => {
 })
 
 test('callers without a key share one queue', async t => {
-  const lock = createFairQueue(1)
+  const lock = withFairQueue(1)
   const release = await lock()
   const first = lock()
   const second = lock()

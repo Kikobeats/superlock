@@ -1,6 +1,6 @@
 'use strict'
 
-const createFairQueue = require('./fair')
+const withFairQueue = require('./fair')
 const createLock = require('./create')
 
 const withLock = opts => {
@@ -25,6 +25,6 @@ const withLock = opts => {
 module.exports = {
   withLock,
   createLock,
-  createFairQueue,
-  createFairLock: createFairQueue
+  withFairQueue,
+  createFairLock: withFairQueue
 }
