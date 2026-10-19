@@ -205,7 +205,7 @@ It returns `false` if there is at least one free concurrency slots in the lock. 
 
 Type: `number`
 
-How many callers are waiting for a slot. On a fair lock that is the total across every key.
+How many callers are waiting for a slot. On a fair queue that is the total across every key.
 
 ## License
 
