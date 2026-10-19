@@ -7,7 +7,8 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./create": "./src/create.js"
+    "./create": "./src/create.js",
+    "./fair": "./src/fair.js"
   },
   "author": {
     "email": "josefrancisco.verdu@gmail.com",

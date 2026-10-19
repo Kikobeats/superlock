@@ -9,6 +9,15 @@ interface LockInterface extends Lock {
 
 declare function createLock(slots?: number): LockInterface;
 
+declare type FairLock = (signal: AbortSignal | undefined | null, key?: unknown) => Promise<Release | null>;
+
+interface FairLockInterface extends FairLock {
+  isLocked: () => boolean;
+  awaiting: () => number;
+}
+
+declare function createFairLock(slots?: number): FairLockInterface;
+
 declare type WithLock = <T>(fn: () => Promise<T>, signal?: AbortSignal) => Promise<T | undefined>;
 
 interface WithLockInterface extends WithLock {
@@ -18,4 +27,4 @@ interface WithLockInterface extends WithLock {
 
 declare function withLock(opts?: number): WithLockInterface;
 
-export { withLock, createLock, WithLockInterface };
+export { withLock, createLock, createFairLock, WithLockInterface, FairLockInterface };
