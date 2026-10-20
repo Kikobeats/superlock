@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.4.3 (2026-10-20)
+
+
+### Bug Fixes
+
+* serve keys that were already waiting before newcomers ([#27](https://github.com/Kikobeats/superlock/issues/27)) ([4b31239](https://github.com/Kikobeats/superlock/commit/4b31239f6ec5a5110ef4b29fb171c98bd5c5584f))
+
 ### 1.4.2 (2026-10-19)
 
 
