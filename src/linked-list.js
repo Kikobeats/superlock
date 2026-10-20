@@ -21,6 +21,16 @@ module.exports = class LinkedList {
     return node
   }
 
+  prepend (data) {
+    const node = new Node(data)
+    node.next = this.head
+    if (this.head) this.head.prev = node
+    else this.tail = node
+    this.head = node
+    this.length++
+    return node
+  }
+
   dequeue () {
     if (!this.head) return
     const { data } = this.head
