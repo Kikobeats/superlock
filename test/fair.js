@@ -472,6 +472,109 @@ test('aborting one waiter of a key leaves the rest of that key', async t => {
   t.false(lock.isLocked())
 })
 
+test('a requeued holder runs after keys queued before the release', async t => {
+  const lock = createFairQueue(1)
+  const held = await lock(undefined, 'a')
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const first = track('b')
+  const again = track('a')
+  const last = track('c')
+
+  held()
+  for (const pending of [first, last, again]) (await pending)()
+
+  t.deepEqual(order, ['b', 'c', 'a'])
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('keys that arrive later cannot skip a waiter forever', async t => {
+  const lock = createFairQueue(1)
+  let holder = await lock(undefined, 'a')
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const early = track('b')
+  const again = track('a')
+  holder()
+  holder = await early
+
+  const late = []
+  for (let i = 0; i < 20; i++) late.push(track(`u${i}`))
+  holder()
+  holder = await again
+  for (const pending of late) {
+    holder()
+    holder = await pending
+  }
+  holder()
+
+  t.deepEqual(order[0], 'b')
+  t.deepEqual(order[1], 'a')
+  t.deepEqual(
+    order.slice(2),
+    late.map((_, i) => `u${i}`)
+  )
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('a later waiter on a sealed key waits behind a newer key', async t => {
+  const lock = createFairQueue(1)
+  const held = await lock(undefined, 'hold')
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const early = track('a')
+  const second = track('a')
+  held()
+  const releaseEarly = await early
+
+  const newer = track('c')
+  const late = track('a')
+
+  releaseEarly()
+  for (const pending of [second, newer, late]) (await pending)()
+
+  t.deepEqual(order, ['a', 'a', 'c', 'a'])
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('a requeued NaN holder runs after keys queued before the release', async t => {
+  const lock = createFairQueue(1)
+  const held = await lock(undefined, NaN)
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(Number.isNaN(key) ? 'nan' : key)
+      return release
+    })
+
+  const first = track('b')
+  const again = track(NaN)
+  const last = track('c')
+
+  held()
+  for (const pending of [first, last, again]) (await pending)()
+
+  t.deepEqual(order, ['b', 'c', 'nan'])
+})
+
 test('callers without a key share one queue', async t => {
   const lock = createFairQueue(1)
   const release = await lock()
