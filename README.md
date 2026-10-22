@@ -4,20 +4,13 @@
 
 > A mutex/semaphore implementation made easy to use.
 
-<a href="https://kikobeats.github.io/superlock/anatomy/mutex.html">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
-    <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
-  </picture>
-</a>
-
 ## Why
 
 **superlock** aims to be:
 
 - **Simple**: Designed for usage with `async` and `await`
 - **Powerful**: Mutex, semaphore, and fair queuing
-- **Secure**: Auto lock release toa void dead locks
+- **Secure**: Auto lock release to avoid deadlocks
 - **Lightweight**: No dependencies
 - **Well-tested**: 100% code coverage
 
@@ -31,7 +24,14 @@ $ npm install superlock --save
 
 ### as mutex
 
-The lock is a mutex by default:
+The lock is a mutex by default: one caller holds it, the rest wait in arrival order.
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-mutex">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
+    <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
+  </picture>
+</a>
 
 ```js
 const { setTimeout } = require('timers/promises')
@@ -53,7 +53,14 @@ console.log(executions)
 
 ### as semaphore
 
-Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock:
+Call `withLock(n)` with `n` as the maximum concurrency for the lock. Up to `n` callers hold it at once; a freed slot goes to the oldest waiter:
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-semaphore">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/semaphore.svg">
+    <img alt="Twin lanes fed by one column: a diverter drops the oldest waiting token into whichever of two lanes is free, and each lane releases on its own." src="docs/anatomy/semaphore-light.svg">
+  </picture>
+</a>
 
 ```js
 const { setTimeout } = require('timers/promises')
@@ -78,6 +85,13 @@ console.log(executions)
 `withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
 
 `withFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue.
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-fair-queue">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/fair-queue.svg">
+    <img alt="An indexing table: one column per key around a rotating dial that feeds one press, visiting the keys in turn so a deep column cannot starve the others." src="docs/anatomy/fair-queue-light.svg">
+  </picture>
+</a>
 
 ```js
 const { withFairQueue } = require('superlock')
@@ -271,7 +285,7 @@ How many callers are waiting for a slot. On a fair queue that is the total acros
 
 ## License
 
-**superlock** © [Kiko Beats](https://kikobeats.com), released under the [MIT](https://github.com/Kikobeats/lock/blob/master/LICENSE.md) License.<br>
-Authored and maintained by [Kiko Beats](https://kikobeats.com) with help from [contributors](https://github.com/Kikobeats/lock/contributors).
+**superlock** © [Kiko Beats](https://kikobeats.com), released under the [MIT](https://github.com/Kikobeats/superlock/blob/master/LICENSE.md) License.<br>
+Authored and maintained by [Kiko Beats](https://kikobeats.com) with help from [contributors](https://github.com/Kikobeats/superlock/contributors).
 
 > [kikobeats.com](https://kikobeats.com) · GitHub [Kiko Beats](https://github.com/Kikobeats) · X [@Kikobeats](https://x.com/Kikobeats)

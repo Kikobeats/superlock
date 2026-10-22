@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import * as M from './machine.mjs'
 import { createRequire } from 'node:module'
-import { mount } from './live.mjs'
+import { mount, embed } from './live.mjs'
 import { createSim } from './sim.mjs'
 import { createDrawing } from './drawing.mjs'
 import { recordLoop, animatedSvg } from './readme.mjs'
@@ -291,6 +291,16 @@ const CSS = `
 .ml-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 `
 
+const PAGE_CSS = `
+html:has(body[data-theme="light"]){color-scheme:light}
+html[data-embed] body{background:transparent}
+html[data-embed] .iso-page{width:100%;margin:0;display:flow-root}
+html[data-embed] .iso-figure{margin:0}
+html[data-embed] .iso-plate{background:transparent;box-shadow:none;padding-left:0;padding-right:0;--anatomy-paper:var(--anatomy-page)}
+html[data-embed] .iso-plate-corners{left:0;right:0}
+@media (max-width:560px){.iso-plate-corner[data-corner="hint"]{right:0;white-space:normal;line-height:1.5}}
+`
+
 const source = file => readFileSync(file, 'utf8')
 const commonjs = (name, code) => `const ${name} = (() => { const module = { exports: {} }; ${code}\nreturn module.exports })()`
 const superlockScript = [
@@ -312,6 +322,8 @@ const script = [
   `const createSim = ${createSim.toString()}`,
   `const createDrawing = ${createDrawing.toString()}`,
   `const mount = ${mount.toString()}`,
+  `const embed = ${embed.toString()}`,
+  'embed()',
   `mount({ data: ${JSON.stringify(DATA)}, kit, machine, sim: createSim({ machine, createLock }), drawing: createDrawing({ kit, machine, P: ${JSON.stringify(P)} }) })`
 ].join('\n')
 
@@ -355,6 +367,6 @@ const frames = await recordLoop({ createSim, machine: M, createLock: require(joi
 const drawing = createDrawing({ kit: k, machine: M, P })
 for (const theme of ['dark', 'light']) {
   const suffix = theme === 'light' ? '-light' : ''
-  write(`mutex${suffix}.html`, k.pageHtml({ title: 'superlock mutex', theme, body: plate, script, width: 720 }).replace('</style>', `${CSS}</style>`))
+  write(`mutex${suffix}.html`, k.pageHtml({ title: 'superlock mutex', theme, body: plate, script, width: 720 }).replace('</style>', `${CSS}${PAGE_CSS}</style>`))
   write(`mutex${suffix}.svg`, animatedSvg({ k, M, P, theme, frames, drawing, bodyOf, token: token(), pinHead: pinHead(), blade: blade(), die: die(), css: CSS, label: LABEL, width: WIDTH, height: HEIGHT }))
 }

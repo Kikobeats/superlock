@@ -1,14 +1,24 @@
-# Mutex figure
+# Figures
 
-`mutex.html` is the interactive figure: click to call `lock()`, click a waiting token to abort its signal. `mutex.svg` and `mutex-light.svg` are the same machine baked into a looping CSS animation for the project README, which cannot run scripts.
+Three interactive figures, one per way to use superlock. Each one runs the library's own code: the page inlines it, and the README SVGs are recorded from it in Node, frame by frame.
 
-Both run superlock's own `src/create.js`. The page inlines it; the SVGs are recorded from it in Node, frame by frame.
+| Figure | Machine | Runs | Sources | Outputs |
+|---|---|---|---|---|
+| Fig 1, mutex | A coin-feed escapement: one column, one pusher blade, one press | `src/create.js`, `createLock()` | `docs/anatomy/*.mjs` | `mutex.html`, `mutex-light.html`, `mutex.svg`, `mutex-light.svg` |
+| Fig 2, semaphore | The same escapement with two lanes fed by a shuttle under one column | `src/create.js`, `createLock(2)` | `docs/anatomy/semaphore/` | `semaphore*.html`, `semaphore*.svg` |
+| Fig 3, fair queue | An indexing table: one column per key around a dial that feeds one press | `src/fair.js`, `createFairQueue()` | `docs/anatomy/fair-queue/` | `fair-queue*.html`, `fair-queue*.svg` |
+
+The `.html` pages are interactive: click to call, click a waiting token to abort its signal. The `.svg` files are the same machines baked into a looping CSS animation for the project README, which cannot run scripts. The `-light` files are the light theme.
+
+Add `?embed` to any page to drop its margins, card and background; it then reports its height to the parent with `postMessage({ superlockFigureHeight })`. The docs site (`index.html` at the repo root) uses this to show each live figure in place of its README image.
+
+Every figure is split the same way:
 
 | File | Role |
 |---|---|
-| `machine.mjs` | Sizes, timings and crank kinematics |
-| `sim.mjs` | The model: tokens, the crank cycle, the idle tour and a real `createLock()` |
-| `drawing.mjs` | The crank arm and connecting rod, redrawn for any crank angle |
+| `machine.mjs` | Sizes, timings and kinematics |
+| `sim.mjs` | The model: tokens, the machine cycle, the idle tour and the real lock |
+| `drawing.mjs` | Moving parts redrawn for any pose |
 | `live.mjs` | The page: draws the model, handles pointer and keys |
 | `readme.mjs` | Records one tour loop and writes it as an animated SVG |
 | `build.mjs` | Static geometry, then all four outputs |
@@ -17,6 +27,8 @@ Rebuild after changing any of them, or `src/`:
 
 ```sh
 node docs/anatomy/build.mjs
+node docs/anatomy/semaphore/build.mjs
+node docs/anatomy/fair-queue/build.mjs
 ```
 
-The build uses the anatomy isometric kit from `~/.claude/skills/anatomy`; set `ANATOMY_HOME` to point elsewhere.
+The builds use the anatomy isometric kit from `~/.claude/skills/anatomy`; set `ANATOMY_HOME` to point elsewhere.
