@@ -124,7 +124,11 @@ export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, parts, c
     return [x - origin[0], y - origin[1]]
   }
 
-  const moving = (markup, values) => `<g${style([keys.motion(values, translate)])}>${markup}</g>`
+  const moving = (markup, values) => {
+    const travel = keys.motion(values, translate)
+    const pinned = travel ? '' : ` transform="translate(${values[0][0].toFixed(2)} ${values[0][1].toFixed(2)})"`
+    return `<g${pinned}${style([travel])}>${markup}</g>`
+  }
   const texts = (values, render) => [...new Set(values)].map(value => switched(keys, `<g>${render(value)}</g>`, values.map(entry => entry === value))).join('')
   const escape = text => text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 
@@ -143,7 +147,7 @@ export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, parts, c
       [`pin-crank-${id}`]: moving(parts.pinHead[index], lanes.map(lane => screen([...M.pinOf(spec, lane.theta), 0]))),
       [`pin-post-${id}`]: moving(parts.pinHead[index], lanes.map(lane => screen([M.postX(lane.theta), spec.y, 0]))),
       [`die-${id}`]: moving(parts.die[index], lanes.map(lane => screen([0, 0, lane.dieZ]))),
-      [`counter-${id}`]: texts(lanes.map(lane => lane.counter), value => `<text class="ml-counter" x="20.3" y="9.8" text-anchor="middle">${value}</text>`)
+      [`counter-${id}`]: texts(lanes.map(lane => lane.counter), value => `<text class="ml-counter" x="8" y="8.8" text-anchor="middle">${value}</text>`)
     }
   })
 
@@ -163,7 +167,9 @@ export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, parts, c
       const alpha = heldWhereAbsent(entries.map(entry => entry && [entry.alpha]), present)
       const fade = keys.motion(alpha, ([value]) => `opacity:${value.toFixed(3)}`)
       const lit = switched(keys, `<g>${litToken}</g>`, entries.map(entry => Boolean(entry && entry.lit)))
-      const inner = `<g${style([keys.motion(where, translate), fade])}>${token}${lit}</g>`
+      const travel = keys.motion(where, translate)
+      const pinned = travel ? '' : ` transform="translate(${where[0][0].toFixed(2)} ${where[0][1].toFixed(2)})"`
+      const inner = `<g${pinned}${style([travel, fade])}>${token}${lit}</g>`
       return switched(keys, `<g>${inner}</g>`, present)
     }).join('')
   }

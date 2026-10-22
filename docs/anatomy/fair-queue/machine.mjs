@@ -12,12 +12,12 @@ export const HOME_ANGLE = PRESS_ANGLE
 export const R_PAD = 38
 export const R_COL = 68
 export const R_DIAL = R_PAD + TOKEN.r + 4
-export const BED = { half: 118, back: 124, front: 78 }
+export const BED = { half: 118, back: 124, front: 64 }
 
 export const BLADE = { length: 38, width: 18, rest: R_COL + TOKEN.r, out: R_PAD + TOKEN.r }
 export const DROP = { floor: DECK - 14, hole: TOKEN.r + 0.8 }
 export const KICK = { home: R_PAD - TOKEN.r, length: 34, width: 10 }
-export const DIE = { r: 9, h: 3, rest: 44 }
+export const DIE = { r: 6, h: 3, rest: 44 }
 export const GLAND_Z = 72
 export const HUB = { r: 10, top: DECK + 13 }
 export const GUIDE = { from: 11, to: 23, width: 15, height: TOKEN.h + 3 }

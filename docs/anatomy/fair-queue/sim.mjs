@@ -4,7 +4,7 @@ export function createSim ({ machine, createFairQueue, calm = () => false, touri
   const FADE_IN = 0.22
   const ABORT_TRAVEL = 40
   const ABORT_LAYER_AT = 20
-  const ABORT_FALL_AT = TOKEN.r * 2
+  const ABORT_FALL_AT = TOKEN.r
   const NOTE_SECONDS = 2.2
   const TOUR = [[0.3, 'call', 'A'], [0.55, 'call', 'A'], [0.8, 'call', 'A'], [1.05, 'call', 'A'], [1.5, 'call', 'B'], [1.9, 'call', 'C'], [5, 'call', 'B'], [11, 'abort', 'A']]
 
@@ -279,6 +279,7 @@ export function createSim ({ machine, createFairQueue, calm = () => false, touri
       return
     }
     quietSince = quietSince ?? clock
+    if (clock - quietSince >= tourRest / 2 && !holder && totalWaiting() === 0) stamps = 0
     if (clock - quietSince >= tourRest) restartTour()
   }
 
@@ -289,10 +290,7 @@ export function createSim ({ machine, createFairQueue, calm = () => false, touri
   }
 
   function restartTour () {
-    if (!holder && totalWaiting() === 0) {
-      serial = 0
-      stamps = 0
-    }
+    if (!holder && totalWaiting() === 0) serial = 0
     tourClock = 0
     tourIndex = 0
     quietSince = null
@@ -341,7 +339,7 @@ export function createSim ({ machine, createFairQueue, calm = () => false, touri
     get trap () { return trap },
     get dieZ () { return DIE.rest - (DIE.rest - DECK - TOKEN.h) * ram },
     get stamps () { return stamps },
-    get pressKey () { return holder ? holder.key : '-' },
+    get counter () { return String(stamps % 1000).padStart(3, '0') },
     get clock () { return clock },
     get holder () { return holder },
     get waiting () { return waiting },

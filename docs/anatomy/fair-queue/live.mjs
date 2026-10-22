@@ -106,7 +106,7 @@ export function mount ({ data, kit, machine, sim, drawing }) {
       parts.die.setAttribute('transform', translateAlong(P, [0, 0, drawnDie]))
     }
     placeTokens()
-    if (parts.counter.textContent !== sim.pressKey) parts.counter.textContent = sim.pressKey
+    if (parts.counter.textContent !== sim.counter) parts.counter.textContent = sim.counter
     const text = sim.readout()
     if (readout.textContent !== text) readout.textContent = text
     if (sim.history.length !== heard) {

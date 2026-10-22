@@ -30,9 +30,8 @@ const RAIL_FROM = -101
 const RAIL = { d: 8, inner: 12.6 }
 const ROD_R = 1.6
 const ROD_RING = 14.4
-const RODS = { back: [0, -ROD_RING], right: [ROD_RING, 0], hang: [ROD_RING * Math.SQRT1_2, ROD_RING * Math.SQRT1_2] }
-const HANG_FOOT = M.ESC_TOP + 10
-const YOKE = { x: -21, y: -19, w: 42, d: 38, r: 5 }
+const RODS = { back: [0, -ROD_RING], right: [ROD_RING, 0], left: [-14, -8] }
+const YOKE = { x: -18, y: -17.5, w: 36, d: 35, r: 5 }
 const YOKE_H = M.YOKE_H
 const HOLE_R = TR + 0.6
 const GEARBOX_W = 20
@@ -41,10 +40,11 @@ const MOTOR_R = 10
 const PRESS_ARM_Z = 92
 const PRESS_ARM_H = 10
 const PRESS_BACK = M.LANE_Y + 32
-const PRESS_ARM = { x: M.STATION - 15, y: -PRESS_BACK, w: 30, d: PRESS_BACK + M.LANE_Y + 14, r: 3 }
-const COUNTER = { w: 30, d: 4, h: 14, gap: 9.5 }
+const PRESS_ARM = { x: M.STATION - 10, y: -PRESS_BACK, w: 20, d: PRESS_BACK + M.LANE_Y + 14, r: 3 }
+const COUNTER = { w: 16, d: 4, h: 12, gap: 9.5 }
 const UPRIGHT = { x: M.STATION - 8, y: -PRESS_BACK, w: 16, d: 10, r: 2 }
 const UPRIGHT_BASE = { x: M.STATION - 12, y: -PRESS_BACK - 4, w: 24, d: 14.5, r: 2 }
+const LANE_TAG = { x: 40, w: 17, d: 10, z: 0.3, text: 8 }
 const CAN_R = 8
 const CAN_TOP = 116
 const RAM_R = 3.2
@@ -108,6 +108,11 @@ function base () {
   out.push(L(k.lineOnTop([plate.x + 5, plate.y + 8.6], [plate.x + 30, plate.y + 8.6], DECK + 0.8, P), { tone: 'lo', free: true }))
   out.push(L(k.lineOnTop([plate.x + 5, plate.y + 10.2], [plate.x + 22, plate.y + 10.2], DECK + 0.8, P), { tone: 'lo', free: true }))
   out.push(D([at([plate.x + plate.w - 3.4, plate.y + 3, DECK + 0.8]), at([plate.x + plate.w - 3.4, plate.y + plate.d - 3, DECK + 0.8])], { size: 0.45 }))
+  M.LANES.forEach(lane => {
+    const plan = { x: LANE_TAG.x, y: lane.y - LANE_TAG.d / 2, w: LANE_TAG.w, d: LANE_TAG.d, r: 1.2 }
+    out.push(S(k.slabOf(plan, DECK, LANE_TAG.z, P, 3), { tone: 'mid', crease: 'none' }))
+    out.push(k.faceTextSvg(k.topMatrix([plan.x + 3, plan.y + plan.d - 1.6], DECK + LANE_TAG.z, P, 'x'), `L${lane.id}`, { size: LANE_TAG.text, tone: 'mid' }))
+  })
   return out.join('')
 }
 
@@ -205,7 +210,7 @@ function gearDrive () {
   return out.join('')
 }
 
-const ESC_BLOCK = { x: -37, y: -16, w: 24, d: 32, r: 3 }
+const ESC_BLOCK = { x: -37, y: -16, w: 24, d: 48, r: 3 }
 const ESC_ARM = { x: -13.4, w: 29.4, inner: 12.8, outer: 16 }
 const ESC_RIGHT = { x: 12.8, y: -12.8, w: 3.2, d: 18.8, r: 0.8 }
 const ESC_POSTS = [[-29, -12], [-29, 12]]
@@ -253,15 +258,11 @@ function escapementBack () {
 const standingRod = at => S(k.cylinder(at[0], at[1], 2.6, ESC_ARM_TOP, 2.4, P, 20), { tone: 'mid' }) + rodOf(at, ESC_ARM_TOP + 2.4, M.COLUMN_TOP)
 
 function columnBack () {
-  return standingRod(RODS.back)
+  return standingRod(RODS.back) + standingRod(RODS.left)
 }
 
 function columnFront () {
-  return [
-    standingRod(RODS.right),
-    rodOf(RODS.hang, HANG_FOOT, M.COLUMN_TOP),
-    S(k.cylinder(RODS.hang[0], RODS.hang[1], 2.6, HANG_FOOT - 2.4, 2.4, P, 18), { tone: 'mid' })
-  ].join('')
+  return standingRod(RODS.right)
 }
 
 function yoke () {
@@ -276,10 +277,10 @@ function yoke () {
 
 const { half, bar, reach, middle } = M.GATE
 const TINE_X = -half + bar
-const TINE_W = half - TINE_X
+const TINE_W = half - M.GATE.lip - TINE_X
 const tine = (y0, y1) => ({ x: TINE_X, y: y0, w: TINE_W, d: y1 - y0, r: 0.8 })
 const WALL_TOP = M.GATE_Z + M.GATE.wallH
-const gateSlab = (plan, height = M.GATE.wallH) => S(k.slabOf(plan, M.GATE_Z, height, P, 3, 0.4), { tone: 'mid' })
+const gateSlab = (plan, height = M.GATE.wallH) => S(k.slabOf(plan, M.GATE_Z, height, P, 3, 0.4), { tone: 'mid', className: 'ml-shuttle' })
 
 function gateBack () {
   const outerY = M.LANE_Y + M.GATE.notch
@@ -287,7 +288,7 @@ function gateBack () {
   const rackTop = WALL_TOP + 1
   const rack = []
   for (let y = barPlan.y + 2; y <= barPlan.y + barPlan.d - 2; y += RACK_STEP) rack.push(k.lineOnTop([-half, y], [-half + bar, y], rackTop, P))
-  return S(k.slabOf(barPlan, M.GATE_Z, M.GATE.wallH + 1, P, 2, 0.2), { tone: 'mid' }) +
+  return S(k.slabOf(barPlan, M.GATE_Z, M.GATE.wallH + 1, P, 2, 0.2), { tone: 'mid', className: 'ml-shuttle' }) +
     L(rack.join(''), { tone: 'faint' }) +
     gateSlab(tine(-reach, -outerY))
 }
@@ -300,7 +301,9 @@ function gateMid () {
 }
 
 function gateFront () {
-  return gateSlab(tine(M.LANE_Y + M.GATE.notch, reach), M.GATE_H)
+  const lip = { x: half - M.GATE.lip, y: -reach, w: M.GATE.lip, d: reach * 2, r: 0.6 }
+  return gateSlab(tine(M.LANE_Y + M.GATE.notch, reach), M.GATE_H) +
+    S(k.slabOf(lip, M.GATE_Z, M.GATE.lipH, P, 2, 0.2), { tone: 'mid', className: 'ml-shuttle' })
 }
 
 function guide (lane) {
@@ -347,11 +350,11 @@ function can (lane) {
 }
 
 function counterBlock (lane, counter) {
-  const plan = { x: PRESS_ARM.x, y: lane.y + COUNTER.gap, w: COUNTER.w, d: COUNTER.d, r: 1 }
+  const plan = { x: M.STATION - 3, y: lane.y + COUNTER.gap, w: COUNTER.w, d: COUNTER.d, r: 1 }
   const z = PRESS_ARM_Z + PRESS_ARM_H
   const face = k.sideMatrix([plan.x, plan.y + plan.d], z + COUNTER.h, P, 'left')
   return S(k.slabOf(plan, z, COUNTER.h, P, 3, 0.4), { tone: 'mid' }) +
-    `<g transform="${face}"><text class="ml-lane" x="6.2" y="9.8" text-anchor="middle">L${lane.id}</text><rect class="ml-window" x="11.6" y="1.8" width="17.4" height="10.4" rx="1"/>${counter}</g>`
+    `<g transform="${face}"><rect class="ml-window" x="1.4" y="1.4" width="13.2" height="9.2" rx="1"/>${counter}</g>`
 }
 
 function pressTop (counters) {
@@ -365,7 +368,7 @@ function pressTop (counters) {
   const left = PRESS_ARM.x + rim
   const right = PRESS_ARM.x + PRESS_ARM.w - rim
   out.push(D([[left, PRESS_ARM.y + rim], [right, PRESS_ARM.y + rim], [left, 0], [right, 0], [left, PRESS_ARM.y + PRESS_ARM.d - rim], [right, PRESS_ARM.y + PRESS_ARM.d - rim]].map(([px, py]) => at([px, py, top])), { size: 0.45 }))
-  M.LANES.forEach((lane, index) => out.push(can(lane), counterBlock(lane, counters[index])))
+  M.LANES.forEach(lane => out.push(can(lane), counterBlock(lane, counters[lane.id - 1])))
   return out.join('')
 }
 
@@ -450,13 +453,13 @@ const bodyOf = moving => [
   layer('esc-back', escapementBack()),
   movingLayer(moving, 'pawls-back'),
   movingLayer(moving, 'pawl-left'),
-  layer('aborting', moving.aborting),
   layer('column-back', columnBack()),
   layer('drop', moving.drop),
   layer('esc-front', escapementRight()),
   movingLayer(moving, 'pawl-right'),
   layer('column', moving.column),
   layer('column-front', columnFront()),
+  layer('aborting', moving.aborting),
   layer('yoke', yoke()),
   layer('arrival', moving.arrival),
   movingLayer(moving, 'die-2'),
@@ -470,7 +473,10 @@ const CSS = `
 .ml-stage:focus-visible{outline:1px solid var(--anatomy-muted);outline-offset:6px}
 .ml-void{fill:var(--anatomy-shade-0);stroke:none}
 .ml-window{fill:var(--anatomy-shade-0);stroke:var(--anatomy-lo);stroke-width:var(--anatomy-weight);vector-effect:non-scaling-stroke}
-.ml-counter{font:600 8px var(--anatomy-mono);fill:var(--anatomy-hi);letter-spacing:.3px}
+.ml-counter{font:600 7.4px var(--anatomy-mono);fill:var(--anatomy-hi);letter-spacing:.3px}
+.iso{--ml-shuttle:#9a9a9a}
+.iso[data-theme="light"]{--ml-shuttle:#3c3c40}
+.ml-shuttle>.iso-edge{stroke:var(--ml-shuttle)}
 .ml-lane{font:700 8px var(--anatomy-mono);fill:var(--anatomy-mid);letter-spacing:.2px}
 [data-layer] g[data-token]{pointer-events:none}
 .iso{--ml-hold-top:#8c8c8c;--ml-hold-side:#6a6a6a}
@@ -518,7 +524,7 @@ const script = [
   `mount({ data: ${JSON.stringify(DATA)}, kit, machine, sim: createSim({ machine, createLock, calm: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches }), drawing: createDrawing({ kit, machine, P: ${JSON.stringify(P)} }) })`
 ].join('\n')
 
-const counterText = id => `<text class="ml-counter" data-part="counter-${id}" x="20.3" y="9.8" text-anchor="middle">000</text>`
+const counterText = id => `<text class="ml-counter" data-part="counter-${id}" x="8" y="8.8" text-anchor="middle">000</text>`
 const staticParts = Object.assign({
   'gate-back': gateBack(),
   'gate-mid': gateMid(),

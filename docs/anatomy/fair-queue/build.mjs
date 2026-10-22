@@ -145,24 +145,23 @@ function base () {
   out.push(L(k.ring(0, 0, M.R_DIAL + 1.2, DECK, P, 96), { tone: 'lo' }))
   out.push(L(k.ring(0, 0, M.R_DIAL, DECK, P, 96), { tone: 'lo' }))
   out.push(L(k.ring(0, 0, M.R_DIAL - 3, DECK, P, 96), { tone: 'faint' }))
+  const scale = M.R_DIAL + 5.4
+  out.push(L(k.ring(0, 0, scale, DECK, P, 120), { tone: 'lo' }))
   const ticks = { minor: [], major: [] }
   for (let degrees = 0; degrees < 360; degrees += 5) {
     const major = degrees % 30 === 0
     const [ux, uy] = M.unitOf(degrees)
     const from = M.R_DIAL + 1.2
-    const to = from + (major ? 2.6 : 1.6)
+    const to = major ? scale : from + 1.6
     ticks[major ? 'major' : 'minor'].push(k.lineOnTop([ux * from, uy * from], [ux * to, uy * to], DECK, P))
   }
-  out.push(L(ticks.minor.join(''), { tone: 'lo' }), L(ticks.major.join(''), { tone: 'mid' }))
+  out.push(L(ticks.minor.join(''), { tone: 'lo' }), L(ticks.major.join(''), { tone: 'hi' }))
+  const [ax, ay] = M.unitOf(M.PRESS_ANGLE)
+  const [bx, by] = M.sideOf(M.PRESS_ANGLE)
+  const pointer = [[scale + 0.6, 0], [scale + 6, -3], [scale + 6, 3]].map(([s, side]) => at([ax * s + bx * side, ay * s + by * side, DECK]))
+  out.push(`<path class="ml-pointer" d="${k.pathOf(pointer, true)}"/>`)
 
-  const [sx, sy] = screenPoint(40, 58)
-  const strip = { x: sx - 24, y: sy - 3, w: 48, d: 6, r: 1 }
-  out.push(S(k.slabOf(strip, DECK, 0.6, P, 3), { tone: 'lo', crease: 'none' }))
-  const rule = k.topTicks(strip.x + 4, strip.x + strip.w - 4, 4, 5, strip.y + 0.01, DECK + 0.6, [2, 3.6], P)
-  out.push(L(rule.minor, { tone: 'lo' }), L(rule.major, { tone: 'mid' }))
-  out.push(D([at([strip.x + 2, strip.y + 3, DECK + 0.6]), at([strip.x + strip.w - 2, strip.y + 3, DECK + 0.6])], { size: 0.4 }))
-
-  const [px, py] = screenPoint(-40, 58)
+  const [px, py] = screenPoint(-62, 26)
   const plate = { x: px - 22, y: py - 6, w: 44, d: 12, r: 1.5 }
   out.push(S(k.slabOf(plate, DECK, 0.8, P, 4), { tone: 'mid', crease: 'none' }))
   out.push(L(k.planOutline(k.insetPlan(plate, 1.4), DECK + 0.8, P, 4), { tone: 'faint' }))
@@ -176,12 +175,19 @@ function base () {
 function dialMarks () {
   const out = []
   const [cx, cy] = M.padPoint(0)
-  out.push(L(k.ring(cx, cy, TR + 1.2, DECK, P, 48), { tone: 'lo' }))
+  const hubRing = 25
+  const rim = M.R_DIAL - 3
+  out.push(L(k.ring(0, 0, hubRing, DECK, P, 64), { tone: 'lo' }))
+  out.push(L([45, 135, 225, 315].map(degrees => {
+    const [ux, uy] = M.unitOf(degrees)
+    return k.lineOnTop([ux * hubRing, uy * hubRing], [ux * rim, uy * rim], DECK, P)
+  }).join(''), { tone: 'mid' }))
+  out.push(L(k.ring(cx, cy, TR + 1.2, DECK, P, 48), { tone: 'mid' }))
   out.push(L(k.ring(cx, cy, TR - 3, DECK, P, 40), { tone: 'faint' }))
   out.push(D([at([cx + TR - 0.6, cy, DECK]), at([cx - TR + 0.6, cy, DECK])], { size: 0.4 }))
   const bolts = []
-  for (let degrees = 45; degrees < 360; degrees += 45) bolts.push(at([...M.along(degrees, 44), DECK]))
-  out.push(D(bolts, { size: 0.45 }))
+  for (let degrees = 22.5; degrees < 360; degrees += 45) bolts.push(at([...M.along(degrees, 44), DECK]))
+  out.push(D(bolts, { size: 0.5 }))
   return out.join('')
 }
 
@@ -224,7 +230,7 @@ function rods (key) {
   return ROD_ANGLES.map(angle => {
     const [cos, sin] = M.unitOf(angle)
     const spot = frame.point(cos * ROD_RING, sin * ROD_RING)
-    return { spot, front: depth(spot) > centre }
+    return { spot, front: depth(spot) > centre, outer: cos > 0 }
   })
 }
 
@@ -238,11 +244,18 @@ function flagCentre (key) {
   return [cx - M.VIEW[0] * reach, cy - M.VIEW[1] * reach]
 }
 
-function hangers (list) {
-  return byDepth(list.map(rod => rod.spot)).map(([x, y]) =>
-    S(k.cylinder(x, y, ROD_R + 0.9, ROD_FOOT, 1.4, P, 18), { tone: 'mid' }) +
-    S(k.cylinder(x, y, ROD_R, ROD_FOOT + 1.4, M.COLUMN_TOP - ROD_FOOT - 1.4, P, 18), { tone: 'mid', crease: 'none' })
-  ).join('')
+function footBar (key) {
+  const plan = columnFrame(key).plan(-ROD_RING - 1.6, -ROD_RING + 2.2, -7.6, 7.6, 1, 2)
+  return slab(plan, ROD_FOOT, 1.4, { tone: 'mid' }, 0.3)
+}
+
+function hangers (key, list) {
+  const bar = list.some(rod => !rod.outer) ? footBar(key) : ''
+  return bar + [...list].sort((a, b) => depth(a.spot) - depth(b.spot)).map(({ spot: [x, y], outer }) => {
+    const foot = outer ? BRIDGE.top : ROD_FOOT
+    return S(k.cylinder(x, y, ROD_R + 0.9, foot, 1.4, P, 18), { tone: 'mid' }) +
+      S(k.cylinder(x, y, ROD_R, foot + 1.4, M.COLUMN_TOP - foot - 1.4, P, 18), { tone: 'mid', crease: 'none' })
+  }).join('')
 }
 
 function post (key) {
@@ -288,9 +301,9 @@ function columnUnit (key, moving) {
     legs.near,
     bridgeTop(key),
     post(key),
-    hangers(list.filter(rod => !rod.front)),
+    hangers(key, list.filter(rod => !rod.front)),
     layer(`col-${key}`, moving.tokens(`col-${key}`)),
-    hangers(list.filter(rod => rod.front)),
+    hangers(key, list.filter(rod => rod.front)),
     yoke(key),
     flag(key)
   ].join('')
@@ -336,8 +349,8 @@ function die () {
   const { r, h } = M.DIE
   const [x, y] = STATION
   return S(k.cylinder(x, y, RAM_R, h + 1.6, RAM_LENGTH, P, 20), { tone: 'mid', crease: 'none' }) +
-    S(k.cylinder(x, y, r, 0, h, P, 40, 0.5), { tone: 'mid', inner: L(k.sideArc(x, y, r, 1.2, P, 28), { tone: 'faint' }) }) +
-    S(k.cylinder(x, y, 4.6, h, 1.6, P, 24), { tone: 'mid' })
+    S(k.cylinder(x, y, r, 0, h, P, 32, 0.4), { tone: 'mid', inner: L(k.sideArc(x, y, r, 1.2, P, 24), { tone: 'faint' }) }) +
+    S(k.cylinder(x, y, RAM_R + 0.8, h, 1.6, P, 24), { tone: 'mid' })
 }
 
 function spindle () {
@@ -423,13 +436,14 @@ const CSS = `
 .ml-stage:focus-visible{outline:1px solid var(--anatomy-muted);outline-offset:6px}
 .ml-stage[data-pointer]:focus-visible{outline:none}
 .ml-void{fill:var(--anatomy-shade-0);stroke:none}
+.ml-pointer{fill:var(--anatomy-hi);stroke:var(--anatomy-hi);stroke-width:var(--anatomy-weight);vector-effect:non-scaling-stroke}
 .ml-wall{fill:var(--anatomy-shade-1);stroke:none}
 .ml-window{fill:var(--anatomy-shade-0);stroke:var(--anatomy-lo);stroke-width:var(--anatomy-weight);vector-effect:non-scaling-stroke}
 .ml-tag{fill:none;stroke:var(--anatomy-lo);stroke-width:var(--anatomy-weight);vector-effect:non-scaling-stroke}
 .ml-key{font:700 10px var(--anatomy-mono);fill:var(--anatomy-hi)}
-.ml-counter{font:700 9.4px var(--anatomy-mono);fill:var(--anatomy-hi)}
+.ml-counter{font:700 7px var(--anatomy-mono);fill:var(--anatomy-hi);letter-spacing:.3px}
 [data-layer] g[data-token]{pointer-events:none}
-.iso{--ml-hold-top:#5c5c5c;--ml-hold-side:#383838}
+.iso{--ml-hold-top:#5c5c5c;--ml-hold-side:#5c5c5c}
 .iso[data-theme="light"]{--ml-hold-top:#2a2a2e;--ml-hold-side:#4a4a4f}
 .iso-solid[data-lit]>.iso-top{fill:var(--ml-hold-top)}
 .iso-solid[data-lit]>.iso-shade{fill:var(--ml-hold-side)}
@@ -460,7 +474,7 @@ const namespace = (name, file) => {
   return `const ${name} = (() => {\n${text.replace(/^export /gm, '')}\nreturn { ${exportedNames(text).join(', ')} }\n})()`
 }
 
-const COUNTER = '<text class="ml-counter" data-part="counter" x="10" y="9.4" text-anchor="middle">-</text>'
+const COUNTER = '<text class="ml-counter" data-part="counter" x="10" y="9" text-anchor="middle">000</text>'
 const DATA = { P, token: token() }
 const script = [
   namespace('kit', join(ANATOMY, 'kit', 'iso-kit.mjs')),

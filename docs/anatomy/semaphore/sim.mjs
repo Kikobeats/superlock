@@ -1,15 +1,15 @@
 export function createSim ({ machine, createLock, calm = () => false, touring = true }) {
-  const { SLOTS, TOKEN, DECK, BLADE_TOP, ARRIVE_Z, COLUMN_TOP, BIN_X, DIE, TIMING, GRAVITY, LANES, GATE_Z, ESC, ESC_TOP, REJECT_X, tipX, THETA_STATION, slotZ, COLUMN_SLOTS, crankEase, BIN_FLOOR, hitsOf } = machine
+  const { SLOTS, TOKEN, DECK, BLADE_TOP, ARRIVE_Z, COLUMN_TOP, REJECT, BIN_X, DIE, TIMING, GRAVITY, LANES, GATE_Z, ESC, ESC_TOP, tipX, THETA_STATION, slotZ, COLUMN_SLOTS, crankEase, BIN_FLOOR, hitsOf } = machine
 
   const ABORT_SLIDE = 0.55
   const ABORT_LAYER_X = 6
   const ABORT_FADE_FROM = 0.7
   const PAWL_TAU = 0.05
-  const PHASE_WORDS = { idle: 'ready', push: 'push', stamp: 'press', eject: 'eject', retract: 'ready' }
+  const PHASE_WORDS = { idle: 'entry', push: 'push', stamp: 'press', eject: 'eject', retract: 'entry' }
   const PILE_LIMIT = 2
   const ENTER_COLUMN_Z = COLUMN_TOP - TOKEN.h
   const NOTE_SECONDS = 1.6
-  const TOUR_REST = 0.5
+  const TOUR_REST = 0.15
   const TOUR = [[0.25, 'call'], [1.2, 'call'], [1.6, 'call'], [2, 'call'], [2.4, 'call'], [2.8, 'call'], [3, 'abort', 1], [6.5, 'call']]
   const PILE_JITTER = [[-2.6, 1.8], [2.4, -1.4], [0.6, 2], [-1.8, -2]]
 
@@ -80,11 +80,13 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     token.state = 'aborting'
     token.leftAt = clock
     token.leftX = token.x
+    token.leftY = token.y
     history.push(`#${token.id} aborted`)
-    say(`#${token.id} aborted`)
+    if (noteToken !== token) say(`#${token.id} aborted`, token)
   }
 
   function abortToken (token) {
+    if (token.state === 'waiting' && !token.controller.signal.aborted) say(`#${token.id} aborted`, token)
     token.controller.abort()
     if (token.release && !token.released) say(`#${token.id} abort ignored`, token)
   }
@@ -250,7 +252,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   }
 
   function stepColumn (dt) {
-    const leaving = tokens.filter(token => token.state === 'aborting' && token.leftX - token.x < TOKEN.r * 2)
+    const leaving = tokens.filter(token => token.state === 'aborting' && Math.hypot(token.x - token.leftX, token.y - token.leftY) < TOKEN.r * 2)
     const order = columnOrder()
     const stack = order.concat(leaving).sort((a, b) => a.z - b.z)
     const ownFloor = token => (token === gate.loading ? GATE_Z : slotZ(order.indexOf(token) - loading().length))
@@ -315,10 +317,12 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   function stepAborting (token, dt) {
     const progress = calm() ? 1 : clamp01((clock - token.leftAt) / TIMING.abort)
     const slide = clamp01(progress / ABORT_SLIDE)
-    token.x = token.leftX + (REJECT_X - token.leftX) * (1 - (1 - slide) ** 2)
+    const glide = 1 - (1 - slide) ** 2
+    token.x = token.leftX + (REJECT[0] - token.leftX) * glide
+    token.y = token.leftY + (REJECT[1] - token.leftY) * glide
     if (slide >= 1) fall(token, ESC_TOP, dt)
     token.alpha = Math.min(token.alpha, 1 - smoothstep(ABORT_FADE_FROM, 1, progress))
-    if (token.x < -ABORT_LAYER_X) token.layer = 'aborting'
+    if (Math.hypot(token.x, token.y) > ABORT_LAYER_X) token.layer = 'aborting'
     if (progress >= 1) remove(token)
   }
 
@@ -346,7 +350,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
       return
     }
     quietSince = quietSince ?? clock
-    if (clock - quietSince >= TOUR_REST && !tokens.some(token => token.state === 'draining') && lanes.every(lane => !lane.rewind)) restartTour()
+    if (clock - quietSince >= TOUR_REST) restartTour()
   }
 
   function resumeTour () {

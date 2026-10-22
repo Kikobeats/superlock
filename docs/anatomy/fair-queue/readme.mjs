@@ -28,7 +28,7 @@ function snapshot (sim, machine) {
     trap: sim.trap,
     blades: Object.fromEntries(machine.KEYS.map(key => [key, sim.bladeTip(key)])),
     dieZ: sim.dieZ,
-    counter: sim.pressKey,
+    counter: sim.counter,
     readout: sim.readout(),
     tokens: sim.tokens.map(({ uid, layer, x, y, z, alpha, lit }) => ({ id: uid, layer, x, y, z, alpha, lit }))
   }
@@ -168,7 +168,7 @@ export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, token, d
     die,
     trapStyle: style([keys.motion(frames.map(frame => [frame.trap]), ([value]) => `opacity:${value.toFixed(3)}`, 0.02)]),
     dieStyle: style([keys.motion(frames.map(frame => screen([0, 0, frame.dieZ])), translate)]),
-    counter: texts(frames.map(frame => frame.counter), value => `<text class="ml-counter" x="10" y="9.4" text-anchor="middle">${value}</text>`)
+    counter: texts(frames.map(frame => frame.counter), value => `<text class="ml-counter" x="10" y="9" text-anchor="middle">${value}</text>`)
   }).join('')
 
   const total = height + BAND * 2
