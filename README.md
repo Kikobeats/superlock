@@ -4,6 +4,13 @@
 
 > A mutex/semaphore implementation made easy to use.
 
+<a href="https://kikobeats.github.io/superlock/anatomy/mutex.html">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
+    <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
+  </picture>
+</a>
+
 ## Why
 
 **superlock** aims to be:
