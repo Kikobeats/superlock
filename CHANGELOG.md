@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.4.4 (2026-10-22)
+
+
+### Bug Fixes
+
+* serve a key again only after every waiting key had a turn ([#30](https://github.com/Kikobeats/superlock/issues/30)) ([ff7ea75](https://github.com/Kikobeats/superlock/commit/ff7ea75868c3a7bb281e5dc3dcdf4db59501e61c))
+
 ### 1.4.3 (2026-10-20)
 
 
