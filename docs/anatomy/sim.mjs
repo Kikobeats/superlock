@@ -8,7 +8,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   const NOTE_SECONDS = 2.2
   const TOUR_REST = 2.5
   const TOUR = [[0.4, 'call'], [1.3, 'call'], [1.7, 'call'], [2.1, 'call'], [2.5, 'call'], [4.8, 'abort', 1]]
-  const PILE_JITTER = [[-1.6, 1.2], [1.4, -0.8], [0.4, 1.6], [-0.9, -1.5]]
+  const PILE_JITTER = [[-2.6, 1.8], [2.4, -1.4], [0.6, 2], [-1.8, -2]]
   const PHASE_WORDS = { push: 'carrying', stamp: 'in the press', eject: 'ejecting', retract: 'releasing' }
 
   const lock = createLock()
@@ -19,6 +19,8 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   const listeners = { tour: [] }
   let holder = null
   let serial = 0
+  let uids = 0
+  let released = true
   let stamps = 0
   let phase = 'idle'
   let phaseAt = 0
@@ -49,7 +51,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     if (waiting.length >= MAX_WAITING) return say(`column full · ${lock.awaiting()} awaiting`)
     const below = columnOrder()
     const top = below.length ? below[below.length - 1].z + TOKEN.h : SPAWN
-    const token = { id: ++serial, x: 0, y: 0, z: Math.max(SPAWN, top), vz: 0, alpha: calm() ? 1 : 0, state: 'waiting', layer: 'tokens', lit: false, controller: new AbortController() }
+    const token = { uid: ++uids, id: ++serial, x: 0, y: 0, z: Math.max(SPAWN, top), vz: 0, alpha: calm() ? 1 : 0, state: 'waiting', layer: 'tokens', lit: false, controller: new AbortController() }
     tokens.push(token)
     waiting.push(token)
     lock(token.controller.signal).then(release => (release ? grant(token, release) : leave(token)))
@@ -72,6 +74,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     token.leftAt = clock
     token.leftX = token.x
     history.push(`#${token.id} aborted`)
+    say(`#${token.id} aborted · lock(signal) resolved null`)
   }
 
   function abortToken (token) {
@@ -103,6 +106,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
       theta = THETA_STATION * ease(progress)
       carry()
       if (progress >= 1) setPhase('stamp')
+      released = false
     } else if (phase === 'stamp') {
       const progress = clamp01(elapsed / TIMING.stamp)
       ram = calm() ? (progress < 1 ? 1 : 0) : smoothstep(0, 0.35, progress) * (1 - smoothstep(0.6, 1, progress))
@@ -125,20 +129,26 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     } else if (phase === 'retract') {
       const progress = elapsed / TIMING.retract
       theta = Math.PI + Math.PI * ease(progress)
+      if (!released && (tipX(theta) <= 0 || progress >= 1)) releaseHolder()
       if (progress >= 1) {
         theta = 0
-        const done = holder
-        holder = null
         setPhase('idle')
-        done.release()
-        history.push(`#${done.id} released`)
       }
     }
   }
 
+  function releaseHolder () {
+    const done = holder
+    released = true
+    holder = null
+    done.lit = false
+    done.release()
+    history.push(`#${done.id} released`)
+  }
+
   function sendToBin (token) {
     const [dx, dy] = PILE_JITTER[stamps % PILE_JITTER.length]
-    Object.assign(token, { state: 'off', offAt: clock, offX: token.x, binX: BIN_X + dx, binY: dy, vz: 0, lit: false, layer: 'bin' })
+    Object.assign(token, { state: 'off', offAt: clock, offX: token.x, binX: BIN_X + dx, binY: dy, vz: 0, layer: 'bin' })
     pile.push(token)
     if (pile.length > PILE_LIMIT) remove(pile.shift())
   }
@@ -163,8 +173,10 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   }
 
   function stepTokens (dt) {
-    const column = columnOrder()
+    const leaving = tokens.filter(token => token.state === 'aborting' && token.x - token.leftX < TOKEN.r * 2)
+    const column = columnOrder().concat(leaving).sort((a, b) => a.z - b.z)
     column.forEach((token, index) => {
+      if (token.state === 'aborting') return
       const own = token === holder ? DECK : slotZ(waiting.indexOf(token))
       const floor = index === 0 ? own : Math.max(own, column[index - 1].z + TOKEN.h)
       fall(token, floor, dt)
@@ -218,7 +230,14 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     if (clock - quietSince >= TOUR_REST) restartTour()
   }
 
+  function resumeTour () {
+    sim.touring = true
+    tourIndex = TOUR.length
+    quietSince = null
+  }
+
   function restartTour () {
+    if (!holder && waiting.length === 0) serial = 0
     tourClock = 0
     tourIndex = 0
     quietSince = null
@@ -237,7 +256,8 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     const awaiting = lock.awaiting()
     if (!lock.isLocked()) return `free · ${awaiting} awaiting`
     if (!holder) return `locked · handing over · ${awaiting} awaiting`
-    const doing = PHASE_WORDS[phase] ? ` (${PHASE_WORDS[phase]})` : ''
+    const carrying = !released || phase === 'idle'
+    const doing = carrying && PHASE_WORDS[phase] ? ` (${PHASE_WORDS[phase]})` : ''
     return `locked by #${holder.id}${doing} · ${awaiting} awaiting`
   }
 
@@ -252,7 +272,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     callLock,
     abortToken,
     abortNewest,
-    restartTour,
+    resumeTour,
     onTourStart: listener => listeners.tour.push(listener),
     get theta () { return theta },
     get dieZ () { return DIE.rest - (DIE.rest - DECK - TOKEN.h) * ram },

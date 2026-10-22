@@ -251,7 +251,7 @@ function token () {
 }
 
 const LABEL = 'A coin-feed escapement on a bed. Tokens, one per call to lock(), stack in a column of three rods: the queue. A crank drives a pusher blade exactly one token thick, so it carries one token at a time to a press and over the end into a bin. While the blade is out, the next token rests on it; when it retracts, the next token drops in.'
-const CAPTION = 'Every token is a call to lock(); the figure runs superlock\'s own createLock(). A free lock lets a token drop straight onto the deck. While the blade carries it to the press, the next token rests on the blade. release() is the blade clearing the column, and the bottom token drops in: first in, first out. Abort a waiting token\'s signal and it leaves the column; the stack closes up. Aborting the holder does nothing.'
+const CAPTION = 'Every token is a call to lock(); the figure runs superlock\'s own createLock(). A free lock lets a token drop straight onto the deck. While the blade carries it to the press, the next token rests on the blade. release() fires as the blade pulls back from under the column, and the bottom token drops in: first in, first out. Abort a waiting token\'s signal and it leaves the column; the stack closes up. Aborting the holder does nothing.'
 
 const bodyOf = moving => [
   layer('base', base()),
@@ -283,6 +283,11 @@ const CSS = `
 .ml-window{fill:var(--anatomy-shade-0);stroke:var(--anatomy-lo);stroke-width:var(--anatomy-weight);vector-effect:non-scaling-stroke}
 .ml-counter{font:600 4.4px var(--anatomy-mono);fill:var(--anatomy-hi);letter-spacing:.3px}
 [data-layer] g[data-token]{pointer-events:none}
+.iso{--ml-hold-top:#5c5c5c;--ml-hold-side:#383838}
+.iso[data-theme="light"]{--ml-hold-top:#2a2a2e;--ml-hold-side:#4a4a4f}
+.iso-solid[data-lit]>.iso-top{fill:var(--ml-hold-top)}
+.iso-solid[data-lit]>.iso-shade{fill:var(--ml-hold-side)}
+.iso-plate-corner[data-corner="hint"]{text-transform:none;letter-spacing:.02em}
 .ml-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 `
 

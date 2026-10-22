@@ -26,8 +26,13 @@ function snapshot (sim) {
     dieZ: sim.dieZ,
     counter: String(sim.stamps % 1000).padStart(3, '0'),
     readout: sim.readout(),
-    tokens: sim.tokens.map(({ id, layer, x, y, z, alpha, lit }) => ({ id, layer, x, y, z, alpha, lit }))
+    tokens: sim.tokens.map(({ uid, layer, x, y, z, alpha, lit }) => ({ id: uid, layer, x, y, z, alpha, lit }))
   }
+}
+
+const stillFrame = frames => {
+  const busiest = frames.findIndex(frame => frame.tokens.some(entry => entry.lit) && frame.readout.includes('in the press') && /· [3-9] awaiting/.test(frame.readout))
+  return Math.max(0, busiest)
 }
 
 const percent = (index, total) => `${((index / total) * 100).toFixed(3)}%`
@@ -106,6 +111,7 @@ function heldWhereAbsent (values, present) {
 
 export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, token, pinHead, blade, die, css, label, width, height }) {
   const seconds = (frames.length / FPS).toFixed(3)
+  const still = (stillFrame(frames) / FPS).toFixed(3)
   const keys = createKeyframes(seconds)
   const origin = k.iso([0, 0, 0], P)
   const screen = point => {
@@ -165,7 +171,7 @@ export function animatedSvg ({ k, M, P, theme, frames, drawing, bodyOf, token, p
 .ml-card{fill:var(--anatomy-card);stroke:var(--anatomy-faint);stroke-width:1}
 .ml-corner{font:500 9.5px var(--anatomy-mono);fill:var(--anatomy-muted);letter-spacing:.9px;text-transform:uppercase}
 .ml-corner[data-tone="strong"]{fill:var(--anatomy-strong);text-transform:none;letter-spacing:.2px}
-@media (prefers-reduced-motion:reduce){*{animation-play-state:paused!important}}
+@media (prefers-reduced-motion:reduce){*{animation-delay:-${still}s!important;animation-play-state:paused!important}}
 ${keys.rules.join('\n')}`
 
   return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="${theme}" viewBox="0 0 ${width} ${total}" role="img" aria-label="${escape(label)}"><title>superlock mutex</title><style>${k.ISO_CSS}${css}${extra}</style>` +

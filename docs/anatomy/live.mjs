@@ -104,8 +104,7 @@ export function mount ({ data, kit, machine, sim, drawing }) {
     sim.touring = false
     clearTimeout(resumeTimer)
     resumeTimer = setTimeout(() => {
-      sim.touring = !still.matches
-      sim.restartTour()
+      if (!still.matches) sim.resumeTour()
       run()
     }, RESUME_TOUR_MS)
   }
@@ -129,7 +128,7 @@ export function mount ({ data, kit, machine, sim, drawing }) {
     return hits.sort((a, b) => Math.abs(centre(a) - y) - Math.abs(centre(b) - y))[0]
   }
 
-  stage.addEventListener('pointerdown', event => {
+  stage.addEventListener('click', event => {
     takeOver()
     const token = tokenAt(viewBoxPoint(event))
     if (token) sim.abortToken(token)
