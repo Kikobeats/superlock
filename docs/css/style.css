@@ -455,6 +455,11 @@ body.sticky .sidebar-toggle {
     z-index: 4;
   }
 
+  .sidebar-toggle:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+  }
+
   .sidebar-toggle span {
     background-color: var(--primary-color);
     display: block;

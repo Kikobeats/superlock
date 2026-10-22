@@ -15,6 +15,7 @@ const OUT = join(HERE, '..')
 const require = createRequire(import.meta.url)
 const ROOT = join(HERE, '..', '..', '..')
 const ANATOMY = process.env.ANATOMY_HOME || [join(homedir(), '.claude', 'skills', 'anatomy'), join(homedir(), '.agents', 'skills', 'anatomy')].find(path => existsSync(join(path, 'kit', 'iso-kit.mjs')))
+if (!ANATOMY) throw new Error('Anatomy kit not found: set ANATOMY_HOME to the anatomy skill directory')
 const k = await import(pathToFileURL(join(ANATOMY, 'kit', 'iso-kit.mjs')).href)
 
 const WIDTH = 640
