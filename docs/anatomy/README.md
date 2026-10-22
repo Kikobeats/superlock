@@ -2,6 +2,8 @@
 
 `mutex.html` is the interactive figure: click to call `lock()`, click a waiting token to abort its signal. `mutex.svg` and `mutex-light.svg` are the same machine baked into a looping CSS animation for the project README, which cannot run scripts.
 
+Add `?embed` to either page to drop its margins and background; it then reports its height to the parent with `postMessage({ superlockFigureHeight })`. The docs site (`index.html` at the repo root) uses this to show the live figure in place of the README image.
+
 Both run superlock's own `src/create.js`. The page inlines it; the SVGs are recorded from it in Node, frame by frame.
 
 | File | Role |

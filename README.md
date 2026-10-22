@@ -4,7 +4,7 @@
 
 > A mutex/semaphore implementation made easy to use.
 
-<a href="https://kikobeats.github.io/superlock/anatomy/mutex.html">
+<a href="https://kikobeats.github.io/superlock/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
     <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
@@ -17,7 +17,7 @@
 
 - **Simple**: Designed for usage with `async` and `await`
 - **Powerful**: Mutex, semaphore, and fair queuing
-- **Secure**: Auto lock release toa void dead locks
+- **Secure**: Auto lock release to avoid deadlocks
 - **Lightweight**: No dependencies
 - **Well-tested**: 100% code coverage
 
@@ -271,7 +271,7 @@ How many callers are waiting for a slot. On a fair queue that is the total acros
 
 ## License
 
-**superlock** © [Kiko Beats](https://kikobeats.com), released under the [MIT](https://github.com/Kikobeats/lock/blob/master/LICENSE.md) License.<br>
-Authored and maintained by [Kiko Beats](https://kikobeats.com) with help from [contributors](https://github.com/Kikobeats/lock/contributors).
+**superlock** © [Kiko Beats](https://kikobeats.com), released under the [MIT](https://github.com/Kikobeats/superlock/blob/master/LICENSE.md) License.<br>
+Authored and maintained by [Kiko Beats](https://kikobeats.com) with help from [contributors](https://github.com/Kikobeats/superlock/contributors).
 
 > [kikobeats.com](https://kikobeats.com) · GitHub [Kiko Beats](https://github.com/Kikobeats) · X [@Kikobeats](https://x.com/Kikobeats)

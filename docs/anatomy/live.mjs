@@ -157,3 +157,11 @@ export function mount ({ data, kit, machine, sim, drawing }) {
   }
   draw()
 }
+
+export function embed () {
+  if (!new URLSearchParams(window.location.search).has('embed')) return
+  document.documentElement.dataset.embed = ''
+  const page = document.querySelector('.iso-page')
+  const report = () => window.parent.postMessage({ superlockFigureHeight: Math.ceil(page.getBoundingClientRect().height) }, '*')
+  new window.ResizeObserver(report).observe(page)
+}
