@@ -7,6 +7,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   const PILE_LIMIT = 3
   const NOTE_SECONDS = 2.2
   const TOUR_REST = 2.5
+  const DRAIN_AFTER = 0.6
   const TOUR = [[0.4, 'call'], [1.3, 'call'], [1.7, 'call'], [2.1, 'call'], [2.5, 'call'], [4.8, 'abort', 1]]
   const PILE_JITTER = [[-2.6, 1.8], [2.4, -1.4], [0.6, 2], [-1.8, -2]]
   const PHASE_WORDS = { push: 'carrying', stamp: 'in the press', eject: 'ejecting', retract: 'releasing' }
@@ -22,6 +23,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   let uids = 0
   let released = true
   let stamps = 0
+  let rewind = null
   let phase = 'idle'
   let phaseAt = 0
   let clock = 0
@@ -182,6 +184,10 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
       fall(token, floor, dt)
     })
     for (const token of [...tokens]) {
+      if (token.state === 'draining') {
+        stepDraining(token)
+        continue
+      }
       token.alpha = Math.min(1, token.alpha + dt / FADE_IN)
       if (token.state === 'off') stepOff(token, dt)
       if (token.state === 'aborting') stepAborting(token)
@@ -197,6 +203,32 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     fall(token, BIN_FLOOR + TOKEN.h * pile.indexOf(token), dt)
   }
 
+  function stepDraining (token) {
+    const progress = calm() ? 1 : clamp01((clock - token.drainAt) / TIMING.drain)
+    token.alpha = 1 - smoothstep(0, 1, progress)
+    if (progress >= 1) remove(token)
+  }
+
+  function drainBin () {
+    pile.forEach(token => Object.assign(token, { state: 'draining', drainAt: clock }))
+    pile.length = 0
+    rewind = { from: stamps, at: clock }
+    stamps = 0
+  }
+
+  const rewindProgress = () => (calm() ? 1 : clamp01((clock - rewind.at) / TIMING.drain))
+
+  function stepRewind () {
+    if (rewind && rewindProgress() >= 1) rewind = null
+  }
+
+  function counter () {
+    if (!rewind) return stamps
+    return Math.round(rewind.from * (1 - smoothstep(0, 1, rewindProgress())))
+  }
+
+  const binFull = () => pile.length > 0 || stamps > 0
+
   function stepAborting (token) {
     const progress = calm() ? 1 : clamp01((clock - token.leftAt) / TIMING.abort)
     token.x = token.leftX + ABORT_TRAVEL * progress * progress
@@ -206,6 +238,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
   }
 
   function settled (token) {
+    if (token.state === 'draining') return true
     if (token.alpha < 1 || token.vz !== 0 || token.state === 'aborting') return false
     if (token.state === 'off') return clock - token.offAt >= TIMING.slide && token.z === BIN_FLOOR + TOKEN.h * pile.indexOf(token)
     return true
@@ -227,7 +260,8 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
       return
     }
     quietSince = quietSince ?? clock
-    if (clock - quietSince >= TOUR_REST) restartTour()
+    if (clock - quietSince >= DRAIN_AFTER && binFull()) drainBin()
+    if (clock - quietSince >= TOUR_REST && !tokens.some(token => token.state === 'draining') && !rewind) restartTour()
   }
 
   function resumeTour () {
@@ -249,6 +283,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     stepTour(dt)
     stepMachine()
     stepTokens(dt)
+    stepRewind()
   }
 
   function readout () {
@@ -277,6 +312,7 @@ export function createSim ({ machine, createLock, calm = () => false, touring = 
     get theta () { return theta },
     get dieZ () { return DIE.rest - (DIE.rest - DECK - TOKEN.h) * ram },
     get stamps () { return stamps },
+    get counter () { return counter() },
     get clock () { return clock },
     get holder () { return holder },
     get waiting () { return waiting },

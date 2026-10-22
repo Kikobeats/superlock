@@ -24,7 +24,7 @@ function snapshot (sim) {
   return {
     theta: sim.theta,
     dieZ: sim.dieZ,
-    counter: String(sim.stamps % 1000).padStart(3, '0'),
+    counter: String(sim.counter % 1000).padStart(3, '0'),
     readout: sim.readout(),
     tokens: sim.tokens.map(({ uid, layer, x, y, z, alpha, lit }) => ({ id: uid, layer, x, y, z, alpha, lit }))
   }

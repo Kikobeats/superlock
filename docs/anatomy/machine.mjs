@@ -18,7 +18,7 @@ export const ROD_H = 3
 export const DIE = { r: 9, h: 3, rest: 44 }
 export const GLAND_Z = 72
 
-export const TIMING = { push: 0.85, stamp: 0.9, eject: 0.45, retract: 0.85, slide: 0.2, abort: 0.7 }
+export const TIMING = { push: 0.85, stamp: 0.9, eject: 0.45, retract: 0.85, slide: 0.2, abort: 0.7, drain: 0.5 }
 export const GRAVITY = 520
 
 export const postX = theta => CRANK.cx - CRANK.r * Math.cos(theta) + Math.sqrt(CRANK.rod ** 2 - (CRANK.r * Math.sin(theta)) ** 2)

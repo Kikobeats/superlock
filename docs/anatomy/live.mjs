@@ -75,7 +75,7 @@ export function mount ({ data, kit, machine, sim, drawing }) {
       parts.die.setAttribute('transform', translateAlong(P, [0, 0, drawnDie]))
     }
     placeTokens()
-    const count = String(sim.stamps % 1000).padStart(3, '0')
+    const count = String(sim.counter % 1000).padStart(3, '0')
     if (parts.counter.textContent !== count) parts.counter.textContent = count
     const text = sim.readout()
     if (readout.textContent !== text) readout.textContent = text
@@ -120,7 +120,7 @@ export function mount ({ data, kit, machine, sim, drawing }) {
     const half = TOKEN.r * P.scale
     const lid = half * Math.sin((P.elevation * Math.PI) / 180)
     const centre = token => iso([token.x, token.y, token.z + TOKEN.h / 2], P)[1]
-    const hits = sim.tokens.filter(token => token.state === 'waiting' || token.state === 'holding').filter(token => {
+    const hits = sim.tokens.filter(token => token.state === 'waiting' || token.state === 'holding' || token.lit).filter(token => {
       const [cx, top] = iso([token.x, token.y, token.z + TOKEN.h], P)
       const [, bottom] = iso([token.x, token.y, token.z], P)
       return Math.abs(x - cx) <= half && y >= top - lid && y <= bottom + lid

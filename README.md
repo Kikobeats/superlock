@@ -53,7 +53,14 @@ console.log(executions)
 
 ### as semaphore
 
-Just call `withLock(n)` being `n` the maximum of concurrency desired for the lock:
+Call `withLock(n)` with `n` as the maximum concurrency for the lock. Up to `n` callers hold it at once; a freed slot goes to the oldest waiter:
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-semaphore">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/semaphore.svg">
+    <img alt="Twin lanes fed by one column: a diverter drops the oldest waiting token into whichever of two lanes is free, and each lane releases on its own." src="docs/anatomy/semaphore-light.svg">
+  </picture>
+</a>
 
 ```js
 const { setTimeout } = require('timers/promises')
@@ -78,6 +85,13 @@ console.log(executions)
 `withLock` and `createLock` are one FIFO queue. A caller that enqueues a lot of work keeps taking the next slot.
 
 `withFairQueue` is [fair queuing](https://en.wikipedia.org/wiki/Fair_queuing): one queue per key, and a free slot rotates across those keys. The same key is still served in arrival order. Callers that omit the key share one queue.
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-fair-queue">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/fair-queue.svg">
+    <img alt="An indexing table: one column per key around a rotating dial that feeds one press, visiting the keys in turn so a deep column cannot starve the others." src="docs/anatomy/fair-queue-light.svg">
+  </picture>
+</a>
 
 ```js
 const { withFairQueue } = require('superlock')
