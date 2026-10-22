@@ -205,7 +205,7 @@ const release = await queue(undefined, key)
 release()
 ```
 
-One key is served in arrival order. Across keys, a free slot goes to the next key that is waiting, then wraps around. A key with nobody left waiting leaves the rotation.
+One key is served in arrival order. Across keys, a free slot goes to the waiting key that has gone longest without a turn; keys that never had one go first, in arrival order. A key that still holds a slot waits behind keys that hold none. Calls that arrive while a round is being served wait until every call that was already waiting has had its turn.
 
 A missing key shares one queue. Any other value, including `null`, is its own queue. `null` and a missing signal do not cancel. A value that is not an `AbortSignal` throws `TypeError`. Aborting after the slot was granted does nothing.
 

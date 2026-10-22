@@ -590,3 +590,220 @@ test('callers without a key share one queue', async t => {
   t.is(lock.awaiting(), 0)
   t.false(lock.isLocked())
 })
+
+test('a holder granted from the queue calls again after the keys already waiting', async t => {
+  const lock = createFairQueue(1)
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+  const runThrough = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      release()
+    })
+
+  const first = await track('a')
+  const a2 = track('a')
+  const b1 = track('b')
+  const b2 = track('b')
+  first()
+  const releaseB1 = await b1
+  const a3 = runThrough('a')
+  releaseB1()
+  ;(await a2)()
+  const releaseB2 = await b2
+  const b3 = runThrough('b')
+  releaseB2()
+  await Promise.all([a3, b3])
+
+  t.deepEqual(order, ['a', 'b', 'a', 'b', 'a', 'b'])
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('a key still holding a slot waits behind a key holding none', async t => {
+  const lock = createFairQueue(2)
+  const order = []
+  const runThrough = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      release()
+    })
+
+  const releaseA = await lock(undefined, 'a')
+  const releaseB = await lock(undefined, 'b')
+  const a2 = runThrough('a')
+  const b2 = runThrough('b')
+  releaseA()
+  await a2
+  releaseB()
+  await b2
+
+  t.deepEqual(order, ['a', 'b'])
+  t.is(lock.awaiting(), 0)
+  t.false(lock.isLocked())
+})
+
+test('holding more slots does not skip a key that has waited longer', async t => {
+  const lock = createFairQueue(4)
+  const releaseA1 = await lock(undefined, 'a')
+  const releaseA2 = await lock(undefined, 'a')
+  const releaseB = await lock(undefined, 'b')
+  const releaseC = await lock(undefined, 'c')
+  const order = []
+  const queued = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const thirdA = queued('a')
+  const secondB = queued('b')
+  releaseC()
+  const releaseThirdA = await thirdA
+  t.deepEqual(order, ['a'])
+  t.is(lock.awaiting(), 1)
+
+  releaseThirdA()
+  const releaseSecondB = await secondB
+  t.deepEqual(order, ['a', 'b'])
+
+  releaseA1()
+  releaseA2()
+  releaseB()
+  releaseSecondB()
+  t.false(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+})
+
+test('a key that has never had a turn goes before one that already has', async t => {
+  const lock = createFairQueue(1)
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const releaseC = await track('c')
+  const secondC = track('c')
+  const firstB = track('b')
+  releaseC()
+  const releaseB = await firstB
+  const secondB = track('b')
+  releaseB()
+  const releaseSecondC = await secondC
+  const firstA = track('a')
+  releaseSecondC()
+
+  const next = await Promise.race([
+    firstA.then(release => ({ key: 'a', release })),
+    secondB.then(release => ({ key: 'b', release }))
+  ])
+  t.is(next.key, 'a')
+  next.release()
+  const releaseSecondB = await secondB
+  releaseSecondB()
+
+  t.deepEqual(order, ['c', 'b', 'c', 'a', 'b'])
+  t.false(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+})
+
+test('releasing twice frees one slot', async t => {
+  const lock = createFairQueue(1)
+  const release = await lock(undefined, 'a')
+  const next = lock(undefined, 'b')
+  release()
+  release()
+  const releaseNext = await next
+  t.true(lock.isLocked())
+  releaseNext()
+  t.false(lock.isLocked())
+})
+
+test('every waiting key gets a turn before a key calls again', async t => {
+  const KEYS = ['a', 'b', 'c', 'd']
+  let seed = 7
+  const random = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  const settle = () => new Promise(resolve => setImmediate(resolve))
+  let checks = 0
+
+  for (let trial = 0; trial < 150; trial++) {
+    const slots = 1 + (trial % 3)
+    const lock = createFairQueue(slots)
+    const calls = []
+    const pending = new Map()
+    const holders = new Map()
+    const served = []
+
+    for (let step = 0; step < 30; step++) {
+      const roll = random()
+      if (roll < 0.55) {
+        const key = KEYS[Math.floor(random() * KEYS.length)]
+        const controller = new AbortController()
+        const call = {
+          id: calls.length,
+          key,
+          controller,
+          ahead: [...pending.values()].filter(other => other.key === key),
+          heldByKey: [...holders.values()].some(other => other.key === key),
+          others: [...pending.values()].filter(
+            other =>
+              other.key !== key &&
+              ![...holders.values()].some(holder => holder.key === other.key)
+          )
+        }
+        calls.push(call)
+        pending.set(call.id, call)
+        lock(controller.signal, key).then(release => {
+          pending.delete(call.id)
+          if (release === null) return
+          call.release = release
+          call.position = served.push(call)
+          holders.set(call.id, call)
+        })
+      } else if (roll < 0.65 && pending.size > 0) {
+        const ids = [...pending.keys()]
+        const call = pending.get(ids[Math.floor(random() * ids.length)])
+        call.aborted = true
+        call.controller.abort()
+      } else if (holders.size > 0) {
+        const ids = [...holders.keys()]
+        const call = holders.get(ids[Math.floor(random() * ids.length)])
+        holders.delete(call.id)
+        call.release()
+      }
+      await settle()
+    }
+    while (holders.size > 0) {
+      const [call] = holders.values()
+      holders.delete(call.id)
+      call.release()
+      await settle()
+    }
+
+    t.is(lock.awaiting(), 0)
+    for (const call of calls) {
+      if (!call.position) continue
+      const repeat = call.heldByKey || call.ahead.some(ahead => ahead.position)
+      if (!repeat) continue
+      const byKey = new Map()
+      for (const other of call.others) {
+        if (!other.position) continue
+        byKey.set(other.key, [...(byKey.get(other.key) || []), other])
+      }
+      for (const others of byKey.values()) {
+        checks++
+        t.true(others.some(other => other.position < call.position))
+      }
+    }
+  }
+  t.true(checks > 500)
+})

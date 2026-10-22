@@ -31,6 +31,29 @@ module.exports = class LinkedList {
     return node
   }
 
+  insertAfter (previous, data) {
+    if (!previous) return this.prepend(data)
+    const node = new Node(data)
+    node.prev = previous
+    node.next = previous.next
+    if (previous.next) previous.next.prev = node
+    else this.tail = node
+    previous.next = node
+    this.length++
+    return node
+  }
+
+  moveToTail (node) {
+    if (node === this.tail) return
+    if (node.prev) node.prev.next = node.next
+    else this.head = node.next
+    node.next.prev = node.prev
+    node.prev = this.tail
+    node.next = undefined
+    this.tail.next = node
+    this.tail = node
+  }
+
   dequeue () {
     if (!this.head) return
     const { data } = this.head
