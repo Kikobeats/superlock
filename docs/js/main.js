@@ -1,35 +1,39 @@
-const FIGURE = {
-  light: 'docs/anatomy/mutex-light.html?embed',
-  dark: 'docs/anatomy/mutex.html?embed',
-  title:
-    'superlock mutex: an interactive coin-feed escapement running createLock()'
-}
+const FIGURE_IMAGE = /docs\/anatomy\/([\w-]+?)-light\.svg$/
 
 const darkScheme = window.matchMedia('(prefers-color-scheme: dark)')
 const phone = window.matchMedia('(max-width: 768px)')
 const HEADING_GAP = { phone: 78, desktop: 24 }
-const figureSource = () => (darkScheme.matches ? FIGURE.dark : FIGURE.light)
 
-function mountFigure (section) {
-  const picture = section.querySelector('a > picture')
-  if (!picture) return
-  const frame = document.createElement('iframe')
-  frame.className = 'figure'
-  frame.title = FIGURE.title
-  frame.src = figureSource()
-  picture.parentElement.replaceWith(frame)
+const figureSource = name =>
+  `docs/anatomy/${name}${darkScheme.matches ? '' : '-light'}.html?embed`
+
+const figureFrames = () => [...document.querySelectorAll('iframe.figure')]
+
+function mountFigures (section) {
+  for (const picture of section.querySelectorAll('a > picture')) {
+    const image = picture.querySelector('img')
+    const match = image && image.getAttribute('src').match(FIGURE_IMAGE)
+    if (!match) continue
+    const frame = document.createElement('iframe')
+    frame.className = 'figure'
+    frame.dataset.figure = match[1]
+    frame.title = image.alt
+    frame.src = figureSource(match[1])
+    picture.parentElement.replaceWith(frame)
+  }
 }
 
 window.addEventListener('message', event => {
   const height = event.data && event.data.superlockFigureHeight
   if (!height) return
-  const frame = document.querySelector('iframe.figure')
-  if (frame && event.source === frame.contentWindow) { frame.style.height = `${height}px` }
+  const frame = figureFrames().find(
+    frame => frame.contentWindow === event.source
+  )
+  if (frame) frame.style.height = `${height}px`
 })
 
 darkScheme.addEventListener('change', () => {
-  const frame = document.querySelector('iframe.figure')
-  if (frame) frame.src = figureSource()
+  for (const frame of figureFrames()) { frame.src = figureSource(frame.dataset.figure) }
 })
 
 window.$docsify = {
@@ -43,7 +47,7 @@ window.$docsify = {
   plugins: [
     function (hook) {
       hook.doneEach(function () {
-        mountFigure(document.querySelector('.markdown-section'))
+        mountFigures(document.querySelector('.markdown-section'))
         window.codecopy('pre')
       })
     }

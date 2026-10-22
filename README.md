@@ -4,13 +4,6 @@
 
 > A mutex/semaphore implementation made easy to use.
 
-<a href="https://kikobeats.github.io/superlock/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
-    <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
-  </picture>
-</a>
-
 ## Why
 
 **superlock** aims to be:
@@ -31,7 +24,14 @@ $ npm install superlock --save
 
 ### as mutex
 
-The lock is a mutex by default:
+The lock is a mutex by default: one caller holds it, the rest wait in arrival order.
+
+<a href="https://kikobeats.github.io/superlock/#/?id=as-mutex">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/mutex.svg">
+    <img alt="A coin-feed escapement: tokens queue in a column, a pusher one token thick carries exactly one at a time to a press, and the next drops in only after release()." src="docs/anatomy/mutex-light.svg">
+  </picture>
+</a>
 
 ```js
 const { setTimeout } = require('timers/promises')

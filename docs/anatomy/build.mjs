@@ -294,8 +294,10 @@ const CSS = `
 const PAGE_CSS = `
 html:has(body[data-theme="light"]){color-scheme:light}
 html[data-embed] body{background:transparent}
-html[data-embed] .iso-page{width:100%;margin:0;padding:1px;display:flow-root}
+html[data-embed] .iso-page{width:100%;margin:0;display:flow-root}
 html[data-embed] .iso-figure{margin:0}
+html[data-embed] .iso-plate{background:transparent;box-shadow:none;padding-left:0;padding-right:0;--anatomy-paper:var(--anatomy-page)}
+html[data-embed] .iso-plate-corners{left:0;right:0}
 @media (max-width:560px){.iso-plate-corner[data-corner="hint"]{right:0;white-space:normal;line-height:1.5}}
 `
 
