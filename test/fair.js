@@ -638,13 +638,79 @@ test('a key still holding a slot waits behind a key holding none', async t => {
   const a2 = runThrough('a')
   const b2 = runThrough('b')
   releaseA()
-  await Promise.all([a2])
+  await a2
   releaseB()
   await b2
 
   t.deepEqual(order, ['a', 'b'])
   t.is(lock.awaiting(), 0)
   t.false(lock.isLocked())
+})
+
+test('holding more slots does not skip a key that has waited longer', async t => {
+  const lock = createFairQueue(4)
+  const releaseA1 = await lock(undefined, 'a')
+  const releaseA2 = await lock(undefined, 'a')
+  const releaseB = await lock(undefined, 'b')
+  const releaseC = await lock(undefined, 'c')
+  const order = []
+  const queued = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const thirdA = queued('a')
+  const secondB = queued('b')
+  releaseC()
+  const releaseThirdA = await thirdA
+  t.deepEqual(order, ['a'])
+  t.is(lock.awaiting(), 1)
+
+  releaseThirdA()
+  const releaseSecondB = await secondB
+  t.deepEqual(order, ['a', 'b'])
+
+  releaseA1()
+  releaseA2()
+  releaseB()
+  releaseSecondB()
+  t.false(lock.isLocked())
+  t.is(lock.awaiting(), 0)
+})
+
+test('a key that has never had a turn goes before one that already has', async t => {
+  const lock = createFairQueue(1)
+  const order = []
+  const track = key =>
+    lock(undefined, key).then(release => {
+      order.push(key)
+      return release
+    })
+
+  const releaseC = await track('c')
+  const secondC = track('c')
+  const firstB = track('b')
+  releaseC()
+  const releaseB = await firstB
+  const secondB = track('b')
+  releaseB()
+  const releaseSecondC = await secondC
+  const firstA = track('a')
+  releaseSecondC()
+
+  const next = await Promise.race([
+    firstA.then(release => ({ key: 'a', release })),
+    secondB.then(release => ({ key: 'b', release }))
+  ])
+  t.is(next.key, 'a')
+  next.release()
+  const releaseSecondB = await secondB
+  releaseSecondB()
+
+  t.deepEqual(order, ['c', 'b', 'c', 'a', 'b'])
+  t.false(lock.isLocked())
+  t.is(lock.awaiting(), 0)
 })
 
 test('releasing twice frees one slot', async t => {

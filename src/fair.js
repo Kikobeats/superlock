@@ -24,12 +24,16 @@ module.exports = (slots = 1) => {
   }
 
   const leaveTurns = entry => {
-    if (entry.turnNode === newestWithoutTurn) { newestWithoutTurn = entry.turnNode.prev }
+    if (entry.turnNode === newestWithoutTurn) {
+      newestWithoutTurn = entry.turnNode.prev
+    }
     turns.remove(entry.turnNode)
   }
 
   const markTurn = entry => {
-    if (entry.turnNode === newestWithoutTurn) { newestWithoutTurn = entry.turnNode.prev }
+    if (entry.turnNode === newestWithoutTurn) {
+      newestWithoutTurn = entry.turnNode.prev
+    }
     turns.moveToTail(entry.turnNode)
   }
 
@@ -41,15 +45,16 @@ module.exports = (slots = 1) => {
 
   const inRound = entry => entry.queue.head.data.joinSeq <= barrier
 
+  // A smaller holder count does not outrank an older turn.
   const longestWithoutTurn = () => {
-    let busiest
+    let holding
     for (let node = turns.head; node; node = node.next) {
       const entry = node.data
       if (entry.queue.size() === 0 || !inRound(entry)) continue
       if (entry.holders === 0) return entry
-      if (!busiest || entry.holders < busiest.holders) busiest = entry
+      if (!holding) holding = entry
     }
-    return busiest
+    return holding
   }
 
   const nextEntry = () => {
