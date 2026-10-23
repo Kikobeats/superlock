@@ -33,7 +33,7 @@ node docs/anatomy/fair-queue/build.mjs
 node docs/anatomy/wordmark/build.mjs
 ```
 
-The social card at `static/og.png` is the light wordmark at rest. Rebuild it after the wordmark or the package description changes:
+The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the light wordmark at rest. Rebuild it after the wordmark changes:
 
 ```sh
 npm run og
