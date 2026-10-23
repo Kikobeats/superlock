@@ -90,6 +90,7 @@
     ]
   },
   "c8": {
+    "all": true,
     "branches": 100,
     "check-coverage": true,
     "functions": 100,
