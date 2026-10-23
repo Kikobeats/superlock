@@ -4,12 +4,15 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const BANNER = pathToFileURL(join(HERE, 'banner.html')).href
-const OUTPUT = join(HERE, '..', '..', 'static', 'og.png')
-
-const WIDTH = 1200
-const HEIGHT = 630
+const ROOT = join(HERE, '..', '..')
 const RENDER_BUDGET_MS = 5000
+const TOUCH_ICON_SIZE = 180
+
+const SHOTS = [
+  { source: join(HERE, 'banner.html'), output: join(ROOT, 'static', 'og.png'), width: 1200, height: 630 },
+  { source: join(HERE, 'touch-icon.html'), output: join(ROOT, 'static', 'apple-touch-icon.png'), width: TOUCH_ICON_SIZE, height: TOUCH_ICON_SIZE }
+]
+
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -20,16 +23,17 @@ const CHROME_CANDIDATES = [
 const chrome = CHROME_CANDIDATES.find(path => path && existsSync(path))
 if (!chrome) throw new Error('Chrome not found: set CHROME_PATH')
 
-execFileSync(chrome, [
-  '--headless=new',
-  '--disable-gpu',
-  '--hide-scrollbars',
-  '--allow-file-access-from-files',
-  '--force-device-scale-factor=1',
-  `--window-size=${WIDTH},${HEIGHT}`,
-  `--virtual-time-budget=${RENDER_BUDGET_MS}`,
-  `--screenshot=${OUTPUT}`,
-  BANNER
-], { stdio: 'ignore' })
-
-console.log(`wrote ${OUTPUT}`)
+for (const { source, output, width, height } of SHOTS) {
+  execFileSync(chrome, [
+    '--headless=new',
+    '--disable-gpu',
+    '--hide-scrollbars',
+    '--allow-file-access-from-files',
+    '--force-device-scale-factor=1',
+    `--window-size=${width},${height}`,
+    `--virtual-time-budget=${RENDER_BUDGET_MS}`,
+    `--screenshot=${output}`,
+    pathToFileURL(source).href
+  ], { stdio: 'ignore' })
+  console.log(`wrote ${output}`)
+}

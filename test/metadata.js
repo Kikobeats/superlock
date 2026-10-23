@@ -20,7 +20,9 @@ const meta = attribute => {
   const values = tags
     .filter(tag => tag.includes(`"${attribute}"`))
     .map(tag => tag.match(/content="([^"]*)"/)[1])
-  if (values.length !== 1) { throw new Error(`expected one ${attribute}, found ${values.length}`) }
+  if (values.length !== 1) {
+    throw new Error(`expected one ${attribute}, found ${values.length}`)
+  }
   return values[0]
 }
 
@@ -73,4 +75,12 @@ test('robots.txt and sitemap.xml point at the homepage', t => {
     )
   )
   t.true(read('sitemap.xml').includes(`<loc>${homepage}</loc>`))
+})
+
+test('the favicon and touch icon are linked and exist', t => {
+  const href = rel =>
+    html.match(new RegExp(`<link rel="${rel}" href="([^"]*)"`))[1]
+  t.is(href('icon'), 'static/favicon.svg')
+  t.true(read(href('icon')).startsWith('<svg'))
+  t.deepEqual(pngSize(href('apple-touch-icon')), { width: 180, height: 180 })
 })

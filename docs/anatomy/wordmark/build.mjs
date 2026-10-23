@@ -390,9 +390,27 @@ const write = (name, text) => {
   console.log('wrote', name, `${(Buffer.byteLength(text) / 1024).toFixed(1)} KB`)
 }
 
+const FAVICON_PAD = 1.5
+const FAVICON_CORNER = 0.2
+
+function faviconSvg () {
+  const letter = WORD.letters[0]
+  const points = letter.rings.flat().flatMap(([x, z]) => [-THICK / 2, THICK / 2].map(y => at([letter.x + x, y, BASELINE + z])))
+  const xs = points.map(([x]) => x)
+  const ys = points.map(([, y]) => y)
+  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + FAVICON_PAD * 2
+  const [left, top, size] = [(Math.min(...xs) + Math.max(...xs) - side) / 2, (Math.min(...ys) + Math.max(...ys) - side) / 2, side].map(value => Math.round(value * 100) / 100)
+  const tile = `<rect x="${left}" y="${top}" width="${size}" height="${size}" rx="${(size * FAVICON_CORNER).toFixed(2)}" fill="var(--anatomy-page)"/>`
+  const body = tile + letterSolid(letter, true)
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="dark" viewBox="${left} ${top} ${size} ${size}"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+}
+
 const frames = await recordLoop({ createSim, machine: MACHINE, createLock: require(join(ROOT, 'src', 'create.js')) })
 const STILL = stillOf(frames)
 const seconds = frames.length / FPS
+
+writeFileSync(join(ROOT, 'static', 'favicon.svg'), compactSvg(faviconSvg()))
+console.log('wrote static/favicon.svg')
 
 for (const theme of ['dark', 'light']) {
   const suffix = theme === 'light' ? '-light' : ''
