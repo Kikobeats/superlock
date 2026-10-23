@@ -392,8 +392,7 @@ const write = (name, text) => {
 
 const FRONT = { origin: [0, 0], scale: P.scale, azimuth: 90, elevation: 0 }
 const frontSolid = createPrism(k, FRONT)
-const FAVICON_MARGIN = 0.2
-const FAVICON_CORNER = 0.2
+const FAVICON_MARGIN = 0.04
 const LETTERS_PAD = 2
 
 const round = value => Math.round(value * 100) / 100
@@ -414,8 +413,7 @@ function faviconSvg () {
   const { left, right, top, bottom } = frontBounds([LOCK], 0)
   const side = Math.max(right - left, bottom - top) / (1 - FAVICON_MARGIN * 2)
   const box = [(left + right - side) / 2, (top + bottom - side) / 2, side, side]
-  const tile = `<rect x="${round(box[0])}" y="${round(box[1])}" width="${round(side)}" height="${round(side)}" rx="${round(side * FAVICON_CORNER)}" fill="var(--anatomy-page)"/>`
-  return frontSvg('dark', box, tile + frontShackle(0, 'wm-shackle') + frontLetter(LOCK))
+  return frontSvg('dark', box, frontShackle(0, 'wm-shackle') + frontLetter(LOCK))
 }
 
 function lettersSvg (theme) {
