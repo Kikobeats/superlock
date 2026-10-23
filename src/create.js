@@ -11,18 +11,25 @@ module.exports = (slots = 1) => {
     if (waiter) return waiter.acquire()
   }
 
+  const ready = Promise.resolve(release)
+
   const acquire = resolve => {
     --slots
     resolve(release)
   }
 
-  const lock = signal =>
-    new Promise(resolve => {
+  const lock = signal => {
+    if (signal == null && slots !== 0) {
+      --slots
+      return ready
+    }
+
+    return new Promise(resolve => {
       if (signal != null && typeof signal.addEventListener !== 'function') {
         throw new TypeError('`signal` needs to be an AbortSignal.')
       }
-      if (signal?.aborted) return resolve(null)
-      if (!lock.isLocked()) return acquire(resolve)
+      if (signal != null && signal.aborted) return resolve(null)
+      if (slots !== 0) return acquire(resolve)
 
       const waiter = { acquire: () => acquire(resolve) }
       const node = queue.enqueue(waiter)
@@ -39,6 +46,7 @@ module.exports = (slots = 1) => {
         signal.addEventListener('abort', onAbort, { once: true })
       }
     })
+  }
 
   lock.isLocked = () => slots === 0
 
