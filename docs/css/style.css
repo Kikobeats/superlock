@@ -240,6 +240,27 @@ body.sticky .sidebar-toggle {
   max-width: 640px;
 }
 
+.markdown-section > p[align="center"]:not(:has(a, iframe)) {
+  color: var(--muted-color);
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+
+.markdown-section > p[align="center"]:has(> a > img) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 0 0 3rem;
+}
+
+.markdown-section > p[align="center"] > a > img {
+  display: block;
+}
+
 .markdown-section :is(h1, h2, h3, h4, h5) {
   color: var(--primary-color);
   font-weight: 600;
