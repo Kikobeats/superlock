@@ -157,7 +157,7 @@ export function mount ({ data, kit, machine, sim }) {
     const index = keys.get(event.key.toLowerCase())
     if (index === undefined) return
     event.preventDefault()
-    press(index)
+    if (!event.repeat) press(index)
   })
 
   new window.IntersectionObserver(entries => {
