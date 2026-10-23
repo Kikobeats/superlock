@@ -135,6 +135,11 @@ main {
   text-decoration: none;
 }
 
+.sidebar > h1 img {
+  display: block;
+  width: 100%;
+}
+
 .sidebar .sidebar-nav {
   line-height: 2em;
   padding-bottom: 40px;

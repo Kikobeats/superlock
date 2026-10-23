@@ -405,12 +405,32 @@ function faviconSvg () {
   return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="dark" viewBox="${left} ${top} ${size} ${size}"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
 }
 
+const LETTERS_PAD = 2
+
+function lettersSvg (theme, lit = false) {
+  const shackle = prism([shackleRing()], [LOCK.x, BASELINE + M.SHACKLE_LIFT], [-SHACKLE_Y, SHACKLE_Y], { className: 'wm-shackle wm-free', tone: 'mid', crease: 'lo', trim: false })
+  const letters = [...WORD.letters].sort((a, b) => depth([a.x, 0]) - depth([b.x, 0]))
+  const body = letters.map(letter => (letter === LOCK ? shackle : '') + letterSolid(letter, lit)).join('')
+  const extent = (rings, x, y) => rings.flat().flatMap(([dx, z]) => [-y, y].map(side => at([x + dx, side, BASELINE + z])))
+  const points = [...WORD.letters.flatMap(letter => extent(letter.rings, letter.x, THICK / 2)), ...extent([shackleRing().map(([x, z]) => [x, z + M.SHACKLE_LIFT])], LOCK.x, SHACKLE_Y)]
+  const xs = points.map(([x]) => x)
+  const ys = points.map(([, y]) => y)
+  const [left, top] = [Math.min(...xs) - LETTERS_PAD, Math.min(...ys) - LETTERS_PAD].map(value => Math.round(value * 100) / 100)
+  const [width, height] = [Math.max(...xs) + LETTERS_PAD - left, Math.max(...ys) + LETTERS_PAD - top].map(value => Math.round(value * 100) / 100)
+  return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="${theme}" viewBox="${left} ${top} ${width} ${height}" role="img" aria-label="superlock"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+}
+
 const frames = await recordLoop({ createSim, machine: MACHINE, createLock: require(join(ROOT, 'src', 'create.js')) })
 const STILL = stillOf(frames)
 const seconds = frames.length / FPS
 
 writeFileSync(join(ROOT, 'static', 'favicon.svg'), compactSvg(faviconSvg()))
 console.log('wrote static/favicon.svg')
+for (const theme of ['dark', 'light']) {
+  const name = `logo${theme === 'light' ? '-light' : ''}.svg`
+  writeFileSync(join(ROOT, 'static', name), compactSvg(lettersSvg(theme)))
+  console.log(`wrote static/${name}`)
+}
 
 for (const theme of ['dark', 'light']) {
   const suffix = theme === 'light' ? '-light' : ''
