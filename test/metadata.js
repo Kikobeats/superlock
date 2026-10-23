@@ -85,8 +85,18 @@ test('the favicon and touch icon are linked and exist', t => {
   t.deepEqual(pngSize(href('apple-touch-icon')), { width: 180, height: 180 })
 })
 
+const tagline = () => read('README.md').match(/class="subtitle">([^<]+)</)[1]
+
 test('the social image alt quotes the README tagline', t => {
-  const tagline = read('README.md').match(/class="subtitle">([^<]+)</)[1]
-  t.true(meta('og:image:alt').includes(`&quot;${tagline}&quot;`))
-  t.true(meta('twitter:image:alt').includes(`&quot;${tagline}&quot;`))
+  t.true(meta('og:image:alt').includes(`&quot;${tagline()}&quot;`))
+  t.true(meta('twitter:image:alt').includes(`&quot;${tagline()}&quot;`))
+})
+
+test('the title and description lead with the README tagline', t => {
+  const phrase = tagline().replace(/\.$/, '')
+  const title = `superlock: ${phrase[0].toLowerCase()}${phrase.slice(1)}`
+  t.is(html.match(/<title>([^<]*)<\/title>/)[1], title)
+  t.is(meta('og:title'), title)
+  t.is(meta('twitter:title'), title)
+  t.true(description.startsWith(phrase))
 })
