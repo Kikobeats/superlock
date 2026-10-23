@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=1200" />
   <title>superlock banner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400&display=block" rel="stylesheet">
   <style>
     html,
     body {
@@ -15,16 +18,27 @@
     }
 
     body {
-      display: grid;
-      place-items: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
     }
 
     #logo svg,
     #logo object {
       display: block;
-      width: 1040px;
+      width: 880px;
       height: auto;
       border: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #b8b8b8;
+      font-size: 34px;
+      letter-spacing: -0.01em;
     }
   </style>
 </head>
@@ -32,12 +46,17 @@
   <div id="logo">
     <object data="../anatomy/wordmark.svg" type="image/svg+xml" aria-label="superlock"></object>
   </div>
+  <p class="subtitle" id="subtitle"></p>
   <script>
     const PAUSE = '<style>*{animation-delay:0s!important;animation-play-state:paused!important}</style>'
     const text = path => fetch(path).then(response => response.text())
 
     text('../anatomy/wordmark.svg').then(svg => {
       document.getElementById('logo').innerHTML = svg.replace('</svg>', `${PAUSE}</svg>`)
+    }).catch(() => {})
+
+    text('../../README.md').then(readme => {
+      document.getElementById('subtitle').textContent = readme.match(/class="subtitle">([^<]+)</)[1]
     }).catch(() => {})
   </script>
 </body>
