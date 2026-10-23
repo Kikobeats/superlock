@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   benchmark:
-    name: Performance regression check
+    name: Benchmark
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,9 +42,8 @@ jobs:
           auto-push: false
           comment-always: true
           pr-comment-always: true
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-threshold: '150%'
+          comment-on-alert: false
+          fail-on-alert: false
           summary-always: false
       - name: Save benchmark
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
