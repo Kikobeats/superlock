@@ -7,7 +7,7 @@
   </a>
 </p>
 
-<p align="center" class="subtitle">A mutex/semaphore implementation made easy to use.</p>
+<p align="center" class="subtitle">The minimal Node.js concurrency toolkit.</p>
 
 <p align="center" class="badges">
   <a href="https://github.com/Kikobeats/superlock/releases"><img alt="Last version" src="https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square"></a>
