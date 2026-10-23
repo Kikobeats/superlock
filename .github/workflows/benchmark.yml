@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Restore previous benchmark
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: cache/benchmark-data.json
           key: benchmark-${{ github.run_id }}-${{ github.run_attempt }}
@@ -53,7 +53,7 @@ jobs:
         run: node benchmark/comment.js cache/benchmark-data.json
       - name: Save benchmark
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: cache/benchmark-data.json
           key: benchmark-${{ github.run_id }}-${{ github.run_attempt }}
