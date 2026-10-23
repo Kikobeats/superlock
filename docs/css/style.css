@@ -234,6 +234,12 @@ body.sticky .sidebar-toggle {
   width: 100%;
 }
 
+.markdown-section iframe.figure[data-figure="wordmark"] {
+  aspect-ratio: 640 / 324;
+  margin: 0 auto 2rem;
+  max-width: 640px;
+}
+
 .markdown-section :is(h1, h2, h3, h4, h5) {
   color: var(--primary-color);
   font-weight: 600;
