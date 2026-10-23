@@ -9,6 +9,20 @@ const figureSource = name =>
 
 const figureFrames = () => [...document.querySelectorAll('iframe.figure')]
 
+let coverObserver
+
+function revealLogoAfterCover (section) {
+  if (coverObserver) coverObserver.disconnect()
+  const cover = section.querySelector('iframe.figure[data-figure="wordmark"]')
+  const setCoverPassed = passed =>
+    document.body.classList.toggle('cover-passed', passed)
+  if (!cover) return setCoverPassed(true)
+  coverObserver = new window.IntersectionObserver(([entry]) =>
+    setCoverPassed(!entry.isIntersecting)
+  )
+  coverObserver.observe(cover)
+}
+
 function mountFigures (section) {
   for (const picture of section.querySelectorAll('a > picture')) {
     const image = picture.querySelector('img')
@@ -49,7 +63,9 @@ window.$docsify = {
   plugins: [
     function (hook) {
       hook.doneEach(function () {
-        mountFigures(document.querySelector('.markdown-section'))
+        const section = document.querySelector('.markdown-section')
+        mountFigures(section)
+        revealLogoAfterCover(section)
         window.codecopy('pre')
       })
     }

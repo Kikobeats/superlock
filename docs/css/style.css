@@ -128,6 +128,22 @@ main {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 32px 15px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out, visibility 0s 0.3s;
+  visibility: hidden;
+}
+
+.cover-passed .sidebar > h1 {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar > h1,
+  .cover-passed .sidebar > h1 {
+    transition: none;
+  }
 }
 
 .sidebar > h1 a {
