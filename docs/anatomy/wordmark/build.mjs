@@ -237,19 +237,29 @@ const MIN_HIT = 60
 
 function slotsOf (letters) {
   const centers = letters.map(letter => at([letter.x + letter.width / 2, 0, BASELINE])[0])
-  const edges = [at([letters[0].x, 0, BASELINE])[0] - 6, ...centers.slice(1).map((center, index) => (center + centers[index]) / 2), at([letters.at(-1).x + letters.at(-1).width, 0, BASELINE])[0] + 6]
-  for (let pass = 0; pass < 20; pass++) {
-    edges.slice(0, -1).forEach((left, index) => {
-      const short = MIN_HIT - (edges[index + 1] - left)
-      if (short <= 0) return
-      if (index > 0) edges[index] -= short / 2
-      if (index + 1 < edges.length - 1) edges[index + 1] += short / 2
-    })
+  const last = letters[letters.length - 1]
+  const edges = [at([letters[0].x, 0, BASELINE])[0] - 6, ...centers.slice(1).map((center, index) => (center + centers[index]) / 2), at([last.x + last.width, 0, BASELINE])[0] + 6]
+  const count = edges.length - 1
+  const slack = edges[count] - edges[0] - MIN_HIT * count
+  if (slack < 0) throw new Error(`wordmark letters span ${edges[count] - edges[0]}, under ${MIN_HIT} each`)
+  const extra = edges.slice(0, -1).map((left, index) => Math.max(0, edges[index + 1] - left - MIN_HIT))
+  const extraSum = extra.reduce((sum, value) => sum + value, 0)
+  const weight = extraSum > 0 ? extra : Array.from({ length: count }, () => 1)
+  const weightSum = weight.reduce((sum, value) => sum + value, 0)
+  let cursor = edges[0]
+  const next = [cursor]
+  for (let index = 0; index < count; index++) {
+    cursor += MIN_HIT + slack * weight[index] / weightSum
+    next.push(cursor)
   }
-  return edges.slice(0, -1).map((left, index) => [left, edges[index + 1]])
+  next[count] = edges[count]
+  return next.slice(0, -1).map((left, index) => [left, next[index + 1]])
 }
 
 const slots = slotsOf(WORD.letters)
+for (const [left, right] of slots) {
+  if (!(right > left) || right - left < MIN_HIT - 1e-6) throw new Error(`wordmark hit slot ${left}..${right} is under ${MIN_HIT}`)
+}
 const hits = WORD.letters.map((letter, index) => {
   const points = letter.rings[0].flatMap(([x, z]) => [at([letter.x + x, THICK / 2, BASELINE + z]), at([letter.x + x, -THICK / 2, BASELINE + z + M.RISE])])
   if (letter === LOCK) points.push(at([letter.x + ROUND, 0, SHACKLE_TOP]))

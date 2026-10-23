@@ -88,6 +88,11 @@
       "!test/helpers.js"
     ]
   },
+  "c8": {
+    "include": [
+      "src/**/*.js"
+    ]
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"

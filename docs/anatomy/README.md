@@ -13,7 +13,7 @@ The `.html` pages are interactive: click to call, click a waiting token to abort
 
 Add `?embed` to any page to drop its margins, card and background; it then reports its height to the parent with `postMessage({ superlockFigureHeight })`. The docs site (`index.html` at the repo root) uses this to show each live figure in place of its README image.
 
-Every figure is split the same way:
+The mutex, semaphore, and fair queue are split the same way. The wordmark uses those roles except `drawing.mjs`: `letters.mjs` builds the glyphs and `prism.mjs` extrudes them.
 
 | File | Role |
 |---|---|
