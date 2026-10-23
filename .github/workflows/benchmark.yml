@@ -41,9 +41,9 @@ jobs:
       - name: Run benchmark
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
         run: node benchmark/index.js
-      - name: Record benchmark
+      - name: Continuous Benchmark
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: j3hempsey-actions/github-action-benchmark@v1.0.5
+        uses: benchmark-action/github-action-benchmark@v1.22.2
         with:
           name: superlock
           tool: customSmallerIsBetter
@@ -52,7 +52,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           comment-always: false
-          pr-comment-always: false
           comment-on-alert: false
           fail-on-alert: false
           summary-always: false
