@@ -240,7 +240,7 @@ body.sticky .sidebar-toggle {
   max-width: 640px;
 }
 
-.markdown-section > p[align="center"]:not(:has(a, iframe)) {
+.markdown-section > .subtitle {
   color: var(--muted-color);
   font-size: 1.5rem;
   letter-spacing: -0.01em;
@@ -250,7 +250,7 @@ body.sticky .sidebar-toggle {
   text-wrap: balance;
 }
 
-.markdown-section > p[align="center"]:has(> a > img) {
+.markdown-section > .badges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -258,7 +258,7 @@ body.sticky .sidebar-toggle {
   margin: 0 0 3rem;
 }
 
-.markdown-section > p[align="center"] > a > img {
+.markdown-section > .badges img {
   display: block;
 }
 

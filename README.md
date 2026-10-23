@@ -7,9 +7,9 @@
   </a>
 </p>
 
-<p align="center">A mutex/semaphore implementation made easy to use.</p>
+<p align="center" class="subtitle">A mutex/semaphore implementation made easy to use.</p>
 
-<p align="center">
+<p align="center" class="badges">
   <a href="https://github.com/Kikobeats/superlock/releases"><img alt="Last version" src="https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square"></a>
   <a href="https://coveralls.io/github/Kikobeats/superlock"><img alt="Coverage Status" src="https://img.shields.io/coverallsCoverage/github/Kikobeats/superlock?style=flat-square"></a>
   <a href="https://www.npmjs.com/package/superlock"><img alt="NPM Status" src="https://img.shields.io/npm/dm/superlock?style=flat-square"></a>
