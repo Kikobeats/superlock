@@ -9,7 +9,7 @@ const OUTPUT = join(HERE, '..', '..', 'static', 'og.png')
 
 const WIDTH = 1200
 const HEIGHT = 630
-const RENDER_BUDGET_MS = 10000
+const RENDER_BUDGET_MS = 5000
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
