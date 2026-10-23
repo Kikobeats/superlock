@@ -26,10 +26,12 @@
       font-family: 'IBM Plex Sans', system-ui, sans-serif;
     }
 
-    #logo svg {
+    #logo svg,
+    #logo object {
       display: block;
       width: 880px;
       height: auto;
+      border: 0;
     }
 
     .subtitle {
@@ -41,20 +43,21 @@
   </style>
 </head>
 <body>
-  <div id="logo"></div>
+  <div id="logo">
+    <object data="../anatomy/wordmark.svg" type="image/svg+xml" aria-label="superlock"></object>
+  </div>
   <p class="subtitle" id="subtitle"></p>
   <script>
-    const FROZEN = '<style>*{animation:none!important}</style>'
-
+    const PAUSE = '<style>*{animation-delay:0s!important;animation-play-state:paused!important}</style>'
     const text = path => fetch(path).then(response => response.text())
 
     text('../anatomy/wordmark.svg').then(svg => {
-      document.getElementById('logo').innerHTML = svg.replace('</svg>', `${FROZEN}</svg>`)
-    })
+      document.getElementById('logo').innerHTML = svg.replace('</svg>', `${PAUSE}</svg>`)
+    }).catch(() => {})
 
     text('../../README.md').then(readme => {
       document.getElementById('subtitle').textContent = readme.match(/class="subtitle">([^<]+)</)[1]
-    })
+    }).catch(() => {})
   </script>
 </body>
 </html>
