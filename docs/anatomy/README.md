@@ -33,7 +33,7 @@ node docs/anatomy/fair-queue/build.mjs
 node docs/anatomy/wordmark/build.mjs
 ```
 
-The wordmark build also writes `static/favicon.svg`, the "s" alone as it looks in the dark wordmark on a dark tile, and `static/logo.svg` and `static/logo-light.svg`, the letters and shackle without the machine, which the docs sidebar shows.
+The wordmark build also writes `static/favicon.svg`, the "s" alone as it looks in the dark wordmark on a dark tile, and `static/logo.svg` and `static/logo-light.svg`, the letters and shackle seen straight on, without the machine, which the docs sidebar shows.
 
 The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest and the tagline it reads from `README.md`. `static/apple-touch-icon.png` is a 180px screenshot of the favicon through `docs/og/touch-icon.html`. Rebuild both after the wordmark changes:
 

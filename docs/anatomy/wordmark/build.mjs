@@ -406,13 +406,16 @@ function faviconSvg () {
 }
 
 const LETTERS_PAD = 2
+const FRONT = { origin: [0, 0], scale: P.scale, azimuth: 90, elevation: 0 }
 
-function lettersSvg (theme, lit = false) {
-  const shackle = prism([shackleRing()], [LOCK.x, BASELINE + M.SHACKLE_LIFT], [-SHACKLE_Y, SHACKLE_Y], { className: 'wm-shackle wm-free', tone: 'mid', crease: 'lo', trim: false })
-  const letters = [...WORD.letters].sort((a, b) => depth([a.x, 0]) - depth([b.x, 0]))
-  const body = letters.map(letter => (letter === LOCK ? shackle : '') + letterSolid(letter, lit)).join('')
-  const extent = (rings, x, y) => rings.flat().flatMap(([dx, z]) => [-y, y].map(side => at([x + dx, side, BASELINE + z])))
-  const points = [...WORD.letters.flatMap(letter => extent(letter.rings, letter.x, THICK / 2)), ...extent([shackleRing().map(([x, z]) => [x, z + M.SHACKLE_LIFT])], LOCK.x, SHACKLE_Y)]
+function lettersSvg (theme) {
+  const front = createPrism(k, FRONT)
+  const project = point => k.iso(point, FRONT)
+  const shackleAt = [LOCK.x, BASELINE + M.SHACKLE_LIFT]
+  const shackle = front([shackleRing()], shackleAt, [-SHACKLE_Y, SHACKLE_Y], { className: 'wm-shackle wm-free', tone: 'mid', crease: 'lo', trim: false })
+  const body = WORD.letters.map(letter => (letter === LOCK ? shackle : '') + front(letter.rings, [letter.x, BASELINE], [-THICK / 2, THICK / 2], { className: 'wm-letter' })).join('')
+  const extent = (rings, [x, z], y) => rings.flat().flatMap(([dx, dz]) => [-y, y].map(side => project([x + dx, side, z + dz])))
+  const points = [...WORD.letters.flatMap(letter => extent(letter.rings, [letter.x, BASELINE], THICK / 2)), ...extent([shackleRing()], shackleAt, SHACKLE_Y)]
   const xs = points.map(([x]) => x)
   const ys = points.map(([, y]) => y)
   const [left, top] = [Math.min(...xs) - LETTERS_PAD, Math.min(...ys) - LETTERS_PAD].map(value => Math.round(value * 100) / 100)
