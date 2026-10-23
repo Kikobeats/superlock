@@ -42,15 +42,19 @@
 </head>
 <body>
   <div id="logo"></div>
-  <p class="subtitle">A mutex/semaphore implementation made easy to use.</p>
+  <p class="subtitle" id="subtitle"></p>
   <script>
     const FROZEN = '<style>*{animation:none!important}</style>'
 
-    fetch('../anatomy/wordmark.svg')
-      .then(response => response.text())
-      .then(svg => {
-        document.getElementById('logo').innerHTML = svg.replace('</svg>', `${FROZEN}</svg>`)
-      })
+    const text = path => fetch(path).then(response => response.text())
+
+    text('../anatomy/wordmark.svg').then(svg => {
+      document.getElementById('logo').innerHTML = svg.replace('</svg>', `${FROZEN}</svg>`)
+    })
+
+    text('../../README.md').then(readme => {
+      document.getElementById('subtitle').textContent = readme.match(/class="subtitle">([^<]+)</)[1]
+    })
   </script>
 </body>
 </html>

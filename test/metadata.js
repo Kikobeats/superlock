@@ -84,3 +84,9 @@ test('the favicon and touch icon are linked and exist', t => {
   t.true(read(href('icon')).startsWith('<svg'))
   t.deepEqual(pngSize(href('apple-touch-icon')), { width: 180, height: 180 })
 })
+
+test('the social image alt quotes the README tagline', t => {
+  const tagline = read('README.md').match(/class="subtitle">([^<]+)</)[1]
+  t.true(meta('og:image:alt').includes(`&quot;${tagline}&quot;`))
+  t.true(meta('twitter:image:alt').includes(`&quot;${tagline}&quot;`))
+})

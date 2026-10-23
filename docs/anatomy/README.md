@@ -35,7 +35,7 @@ node docs/anatomy/wordmark/build.mjs
 
 The wordmark build also writes `static/favicon.svg`: the "s" alone, as it looks in the dark wordmark, on a dark tile.
 
-The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest and the README tagline. `static/apple-touch-icon.png` is a 180px screenshot of the favicon through `docs/og/touch-icon.html`. Rebuild both after the wordmark changes:
+The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest and the tagline it reads from `README.md`. `static/apple-touch-icon.png` is a 180px screenshot of the favicon through `docs/og/touch-icon.html`. Rebuild both after the wordmark changes:
 
 ```sh
 npm run og
