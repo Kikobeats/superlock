@@ -33,7 +33,7 @@ node docs/anatomy/fair-queue/build.mjs
 node docs/anatomy/wordmark/build.mjs
 ```
 
-The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest. Rebuild it after the wordmark changes:
+The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest, the README tagline and the README badges. The badges are fetched from shields.io when the screenshot is taken, so rebuild it after a release as well as after the wordmark changes:
 
 ```sh
 npm run og

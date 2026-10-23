@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=1200" />
   <title>superlock banner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400&display=block" rel="stylesheet">
   <style>
     html,
     body {
@@ -15,19 +18,46 @@
     }
 
     body {
-      display: grid;
-      place-items: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
     }
 
     #logo svg {
       display: block;
-      width: 1040px;
+      width: 880px;
       height: auto;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #b8b8b8;
+      font-size: 34px;
+      letter-spacing: -0.01em;
+    }
+
+    .badges {
+      display: flex;
+      gap: 12px;
+    }
+
+    .badges img {
+      display: block;
+      height: 36px;
     }
   </style>
 </head>
 <body>
   <div id="logo"></div>
+  <p class="subtitle">A mutex/semaphore implementation made easy to use.</p>
+  <div class="badges">
+    <img alt="Last version" src="https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square" />
+    <img alt="Coverage Status" src="https://img.shields.io/coverallsCoverage/github/Kikobeats/superlock?style=flat-square" />
+    <img alt="NPM Status" src="https://img.shields.io/npm/dm/superlock?style=flat-square" />
+  </div>
   <script>
     const FROZEN = '<style>*{animation:none!important}</style>'
 
