@@ -1,0 +1,54 @@
+name: benchmark
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+      - name: Restore previous benchmark
+        uses: actions/cache/restore@v4
+        with:
+          path: cache/benchmark-data.json
+          key: benchmark-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: benchmark-
+      - name: Run benchmark
+        run: node benchmark/index.js
+      - name: Compare and comment
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: j3hempsey-actions/github-action-benchmark@v1.0.5
+        with:
+          name: superlock
+          tool: customSmallerIsBetter
+          output-file-path: benchmark-output.json
+          external-data-json-path: cache/benchmark-data.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          comment-always: true
+          pr-comment-always: true
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-threshold: '150%'
+          summary-always: false
+      - name: Save benchmark
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/cache/save@v4
+        with:
+          path: cache/benchmark-data.json
+          key: benchmark-${{ github.run_id }}-${{ github.run_attempt }}
