@@ -2,7 +2,7 @@
   "name": "superlock",
   "description": "The minimal Node.js concurrency toolkit: mutex, semaphore and fair queue for async/await, with no dependencies.",
   "homepage": "https://superlock.js.org/",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "types": "src/index.d.ts",
   "main": "src/index.js",
   "exports": {
