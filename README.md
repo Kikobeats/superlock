@@ -1,3 +1,12 @@
+<p align="center">
+  <a href="https://superlock.js.org/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/wordmark.svg">
+      <img alt="superlock" src="docs/anatomy/wordmark-light.svg" width="640">
+    </picture>
+  </a>
+</p>
+
 [![Last version](https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square)](https://github.com/Kikobeats/superlock/releases)
 [![Coverage Status](https://img.shields.io/coverallsCoverage/github/Kikobeats/superlock?style=flat-square)](https://coveralls.io/github/Kikobeats/superlock)
 [![NPM Status](https://img.shields.io/npm/dm/superlock?style=flat-square)](https://www.npmjs.com/package/superlock)

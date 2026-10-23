@@ -1,18 +1,19 @@
 # Figures
 
-Three interactive figures, one per way to use superlock. Each one runs the library's own code: the page inlines it, and the README SVGs are recorded from it in Node, frame by frame.
+Three interactive figures, one per way to use superlock, plus the wordmark at the top of the README. Each one runs the library's own code: the page inlines it, and the README SVGs are recorded from it in Node, frame by frame.
 
 | Figure | Machine | Runs | Sources | Outputs |
 |---|---|---|---|---|
 | Fig 1, mutex | A coin-feed escapement: one column, one pusher blade, one press | `src/create.js`, `createLock()` | `docs/anatomy/*.mjs` | `mutex.html`, `mutex-light.html`, `mutex.svg`, `mutex-light.svg` |
 | Fig 2, semaphore | The same escapement with two lanes fed by a shuttle under one column | `src/create.js`, `createLock(2)` | `docs/anatomy/semaphore/` | `semaphore*.html`, `semaphore*.svg` |
 | Fig 3, fair queue | An indexing table: one column per key around a dial that feeds one press | `src/fair.js`, `createFairQueue()` | `docs/anatomy/fair-queue/` | `fair-queue*.html`, `fair-queue*.svg` |
+| Wordmark | The word on a plate: click a letter to queue it, one carriage serves the queue and toggles each letter | `src/create.js`, `createLock()` | `docs/anatomy/wordmark/` | `wordmark*.html`, `wordmark*.svg` |
 
 The `.html` pages are interactive: click to call, click a waiting token to abort its signal. The `.svg` files are the same machines baked into a looping CSS animation for the project README, which cannot run scripts. The `-light` files are the light theme.
 
 Add `?embed` to any page to drop its margins, card and background; it then reports its height to the parent with `postMessage({ superlockFigureHeight })`. The docs site (`index.html` at the repo root) uses this to show each live figure in place of its README image.
 
-Every figure is split the same way:
+The mutex, semaphore, and fair queue are split the same way. The wordmark uses those roles except `drawing.mjs`: `letters.mjs` builds the glyphs and `prism.mjs` extrudes them.
 
 | File | Role |
 |---|---|
@@ -29,6 +30,7 @@ Rebuild after changing any of them, or `src/`:
 node docs/anatomy/build.mjs
 node docs/anatomy/semaphore/build.mjs
 node docs/anatomy/fair-queue/build.mjs
+node docs/anatomy/wordmark/build.mjs
 ```
 
 The builds use the anatomy isometric kit from `~/.claude/skills/anatomy`; set `ANATOMY_HOME` to point elsewhere.
