@@ -28,18 +28,7 @@ jobs:
           path: cache/benchmark-data.json
           key: benchmark-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: benchmark-
-      - name: Benchmark pull request against its base
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          node benchmark/index.js
-          git fetch --depth=1 origin "${{ github.event.pull_request.base.sha }}"
-          git worktree add --detach "$RUNNER_TEMP/base" FETCH_HEAD
-          node "$RUNNER_TEMP/base/benchmark/index.js"
-          node benchmark/index.js
-          cp benchmark-output.json "$RUNNER_TEMP/head.json"
-          cp "$RUNNER_TEMP/base/benchmark-output.json" "$RUNNER_TEMP/base.json"
       - name: Run benchmark
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
         run: node benchmark/index.js
       - name: Continuous Benchmark
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -51,18 +40,10 @@ jobs:
           external-data-json-path: cache/benchmark-data.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
-          comment-always: false
+          comment-always: true
           comment-on-alert: false
           fail-on-alert: false
           summary-always: false
-      - name: Comment on pull request
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: node benchmark/comment.js "$RUNNER_TEMP/head.json" "$RUNNER_TEMP/base.json"
       - name: Save benchmark
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/cache/save@v6
