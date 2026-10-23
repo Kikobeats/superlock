@@ -18,9 +18,10 @@ const previous = suites
   .reverse()
   .find(suite => suite.commit.id !== current.commit.id)
 
-const speed = (now, before) => {
+const faster = (now, before) => {
   if (!before || !now) return ''
-  return (before / now).toFixed(2)
+  const percent = Math.round((before / now - 1) * 100)
+  return `${percent}%`
 }
 
 const repo = process.env.GITHUB_REPOSITORY
@@ -43,18 +44,16 @@ const lines = [
   '<!-- superlock-benchmark -->',
   '# superlock',
   '',
-  'Speed is the previous time divided by this time. `1.00` is the same speed. `1.20` is 20% faster.',
-  '',
   `| Benchmark | Current: ${commitLink(
     current.commit
-  )} | Previous: ${commitLink(previous && previous.commit)} | Speed |`,
+  )} | Previous: ${commitLink(previous && previous.commit)} | Faster |`,
   '|-|-|-|-|'
 ]
 
 for (const bench of current.benches) {
   const prev =
     previous && previous.benches.find(item => item.name === bench.name)
-  const shown = speed(bench.value, prev && prev.value)
+  const shown = faster(bench.value, prev && prev.value)
   lines.push(
     `| \`${bench.name}\` | ${cell(bench)} | ${cell(prev)} | ${
       shown ? `\`${shown}\`` : ''
