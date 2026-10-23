@@ -33,4 +33,12 @@ node docs/anatomy/fair-queue/build.mjs
 node docs/anatomy/wordmark/build.mjs
 ```
 
+The social card at `static/og.png` is the light wordmark at rest. Rebuild it after the wordmark or the package description changes:
+
+```sh
+npm run og
+```
+
+It renders with headless Chrome; set `CHROME_PATH` if Chrome is not in the default location.
+
 The builds use the anatomy isometric kit from `~/.claude/skills/anatomy`; set `ANATOMY_HOME` to point elsewhere.

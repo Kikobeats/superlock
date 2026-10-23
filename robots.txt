@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://superlock.js.org/sitemap.xml
