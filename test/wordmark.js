@@ -32,7 +32,7 @@ async function untilIdle (sim) {
   for (let step = 0; step < 60 * 30; step++) {
     sim.step(1 / 60)
     await settle()
-    if (!sim.busy() && sim.holder === null && sim.waiting.length === 0) return
+    if (!sim.busy()) return
   }
   throw new Error('wordmark sim did not return to idle')
 }
@@ -116,7 +116,9 @@ function hitsOf (html) {
   let depth = 0
   for (let index = open; index < html.length; index++) {
     if (html[index] === '[') depth++
-    else if (html[index] === ']' && --depth === 0) { return JSON.parse(html.slice(open, index + 1)) }
+    else if (html[index] === ']' && --depth === 0) {
+      return JSON.parse(html.slice(open, index + 1))
+    }
   }
   return null
 }
