@@ -24,7 +24,7 @@ const elapsed = async (lock, keys) => {
 
 const median = values => {
   const sorted = values.slice().sort((a, b) => a - b)
-  return sorted[(sorted.length / 2) | 0]
+  return sorted[Math.floor(sorted.length / 2)]
 }
 
 const main = async () => {
@@ -42,9 +42,11 @@ const main = async () => {
     }
     const med = median(ratios)
     console.log(
-      `${keys} keys  median ${med.toFixed(2)}x  range ${Math.min(...ratios).toFixed(
+      `${keys} keys  median ${med.toFixed(2)}x  range ${Math.min(
+        ...ratios
+      ).toFixed(2)}-${Math.max(...ratios).toFixed(
         2
-      )}-${Math.max(...ratios).toFixed(2)}  runs ${runs}  grants ${cycles}  errors ${errors}`
+      )}  runs ${runs}  grants ${cycles}  errors ${errors}`
     )
   }
 }
