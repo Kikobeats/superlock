@@ -1,5 +1,7 @@
 'use strict'
 
+const { writeFileSync } = require('node:fs')
+const { join } = require('node:path')
 const { createLock, withLock } = require('superlock')
 
 const RUNS = 7
@@ -34,12 +36,23 @@ const sample = async work => {
   }
 }
 
+const results = []
+
 const report = (name, result, work) => {
+  const min = result.min.toFixed(1)
+  const max = result.max.toFixed(1)
   console.log(
-    `${name}  median ${result.med.toFixed(1)}ms  range ${result.min.toFixed(
+    `${name}  median ${result.med.toFixed(
       1
-    )}-${result.max.toFixed(1)}  work ${work}  errors ${result.errors}  runs ${RUNS}`
+    )}ms  range ${min}-${max}  work ${work}  errors ${result.errors}  runs ${RUNS}`
   )
+  results.push({
+    name,
+    unit: 'ms',
+    value: Number(result.med.toFixed(1)),
+    range: `${min}-${max}`,
+    extra: `work ${work}, errors ${result.errors}, runs ${RUNS}`
+  })
 }
 
 const main = async () => {
@@ -81,7 +94,15 @@ const main = async () => {
   })
   report('createLock queue', queued, BURSTS * DEPTH)
 
-  if (free.errors || wrapped.errors || queued.errors) process.exitCode = 1
+  if (free.errors || wrapped.errors || queued.errors) {
+    process.exitCode = 1
+    return
+  }
+
+  writeFileSync(
+    join(__dirname, '..', 'benchmark-output.json'),
+    JSON.stringify(results, null, 2) + '\n'
+  )
 }
 
 main()

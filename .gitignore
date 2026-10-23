@@ -28,6 +28,7 @@ nbproject
 testApp
 coverage
 .nyc_output
+benchmark-output.json
 
 ############################
 # Other
