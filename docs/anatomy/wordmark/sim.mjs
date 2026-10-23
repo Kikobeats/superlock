@@ -222,11 +222,12 @@ export function createSim ({ machine, createLock, calm = () => false, demo = fal
     status () {
       const on = letters.filter(letter => letter.on).map(letter => letter.char)
       const owner = holder || (lock.isLocked() ? waiting[0] : null)
-      const lead = owner ? `${owner.char} holds the lock` : 'free'
       const rest = waiting.filter(letter => letter !== owner)
-      const queue = rest.length ? ` · ${rest.map(letter => letter.char).join(', ')} waiting` : ''
-      const lit = on.length ? ` · on: ${on.join(' ')}` : ''
-      return `${lead}${queue}${lit}`
+      return [
+        owner && `${owner.char} holds the lock`,
+        rest.length && `${rest.map(letter => letter.char).join(', ')} waiting`,
+        on.length && `on: ${on.join(' ')}`
+      ].filter(Boolean).join(' · ')
     }
   }
 }
