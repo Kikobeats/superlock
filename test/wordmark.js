@@ -93,7 +93,7 @@ test('letters are served in arrival order and a second service toggles them off'
   t.false(sim.letters[index('s')].on)
 })
 
-test('pressing the holder is ignored, and the status does not say free while a letter waits', async t => {
+test('pressing the holder is ignored, and the status names the holder and the waiting letters', async t => {
   const { create, letters } = await wordmark()
   const sim = create()
   const index = char => letters.indexOf(char)
@@ -106,8 +106,19 @@ test('pressing the holder is ignored, and the status does not say free while a l
 
   sim.press(index('u'))
   await settle()
-  t.false(sim.status().startsWith('free'))
-  t.true(sim.status().includes('u waiting'))
+  t.is(sim.status(), 's holds the lock · u waiting')
+})
+
+test('the status is empty when idle and lists only the lit letters after a run', async t => {
+  const { create, letters } = await wordmark()
+  const sim = create()
+
+  t.is(sim.status(), '')
+
+  sim.press(letters.indexOf('k'))
+  await settle()
+  await untilIdle(sim)
+  t.is(sim.status(), 'on: k')
 })
 
 function hitsOf (html) {

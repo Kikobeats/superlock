@@ -33,4 +33,14 @@ node docs/anatomy/fair-queue/build.mjs
 node docs/anatomy/wordmark/build.mjs
 ```
 
+The wordmark build also writes `static/favicon.svg`, the padlock (the "o" and its shut shackle) seen straight on, with no background, and `static/logo.svg` and `static/logo-light.svg`, the letters and shackle seen straight on, without the machine, which the docs sidebar shows.
+
+The social card at `static/og.png` is a screenshot of `docs/og/banner.html`, which shows the dark wordmark at rest and the tagline it reads from `README.md`. `static/apple-touch-icon.png` is a 180px screenshot of the favicon through `docs/og/touch-icon.html`. Rebuild both after the wordmark changes:
+
+```sh
+npm run og
+```
+
+It renders with headless Chrome; set `CHROME_PATH` if Chrome is not in the default location.
+
 The builds use the anatomy isometric kit from `~/.claude/skills/anatomy`; set `ANATOMY_HOME` to point elsewhere.

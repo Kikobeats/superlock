@@ -1,6 +1,6 @@
 {
   "name": "superlock",
-  "description": "Minimal async mutex and semaphore for serializing critical sections in Node.js.",
+  "description": "The minimal Node.js concurrency toolkit: mutex, semaphore and fair queue for async/await, with no dependencies.",
   "homepage": "https://superlock.js.org/",
   "version": "1.4.4",
   "types": "src/index.d.ts",
@@ -73,6 +73,7 @@
     "dev": "concurrently \"gulp\" \"npm run dev:server\"",
     "dev:server": "browser-sync start --server --files \"index.html, README.md, static/**/*.(css|js)\"",
     "lint": "standard",
+    "og": "node docs/og/build.mjs",
     "postrelease": "npm run release:tags && npm run release:github && (ci-publish || npm publish --access=public)",
     "prerelease": "npm run contributors",
     "pretest": "npm run lint",

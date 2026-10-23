@@ -312,7 +312,7 @@ const LIVE_CSS = `
 [data-letter][data-hover] .wm-letter:not([data-lit])>[data-cap]{fill:var(--wm-hover-cap)}
 .iso{--wm-hover-top:var(--anatomy-lo);--wm-hover-cap:var(--anatomy-faint)}
 .iso[data-theme="light"]{--wm-hover-top:var(--anatomy-shade-0);--wm-hover-cap:var(--anatomy-shade-2)}
-@media (prefers-reduced-motion:reduce){.wm-letter{transition:none}}
+@media (prefers-reduced-motion:reduce){.wm-letter,.wm-hint{transition:none}}
 `
 
 const PAGE_CSS = `
@@ -326,6 +326,7 @@ html:has(body[data-theme="light"]){color-scheme:light}
 .wm-hint [data-touch]{display:none}
 @media (pointer:coarse){.wm-hint [data-touch]{display:inline}.wm-hint [data-mouse]{display:none}}
 @media (max-width:420px){.wm-hint{font-size:9px;letter-spacing:0}.wm-status{font-size:10px}}
+@media (hover:hover){.wm-hint{opacity:0;transition:opacity .2s var(--anatomy-ease)}body:hover .wm-hint,body:has(.wm-stage:focus-visible) .wm-hint{opacity:.8}}
 .wm-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 html[data-embed] body{background:transparent}
 html[data-embed] .iso-page{width:100%;margin:0;display:flow-root}
@@ -389,9 +390,50 @@ const write = (name, text) => {
   console.log('wrote', name, `${(Buffer.byteLength(text) / 1024).toFixed(1)} KB`)
 }
 
+const FRONT = { origin: [0, 0], scale: P.scale, azimuth: 90, elevation: 0 }
+const frontSolid = createPrism(k, FRONT)
+const FAVICON_MARGIN = 0.04
+const LETTERS_PAD = 2
+
+const round = value => Math.round(value * 100) / 100
+const frontLetter = letter => frontSolid(letter.rings, [letter.x, BASELINE], [-THICK / 2, THICK / 2], { className: 'wm-letter' })
+const frontShackle = (lift, className) => frontSolid([shackleRing()], [LOCK.x, BASELINE + lift], [-SHACKLE_Y, SHACKLE_Y], { className, tone: 'mid', crease: 'lo', trim: false })
+
+function frontBounds (letters, lift) {
+  const extent = (rings, [x, z], y) => rings.flat().flatMap(([dx, dz]) => [-y, y].map(side => k.iso([x + dx, side, z + dz], FRONT)))
+  const points = [...letters.flatMap(letter => extent(letter.rings, [letter.x, BASELINE], THICK / 2)), ...extent([shackleRing()], [LOCK.x, BASELINE + lift], SHACKLE_Y)]
+  const xs = points.map(([x]) => x)
+  const ys = points.map(([, y]) => y)
+  return { left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) }
+}
+
+const frontSvg = (theme, viewBox, body) => `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="${theme}" viewBox="${viewBox.map(round).join(' ')}" role="img" aria-label="superlock"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+
+function faviconSvg () {
+  const { left, right, top, bottom } = frontBounds([LOCK], 0)
+  const side = Math.max(right - left, bottom - top) / (1 - FAVICON_MARGIN * 2)
+  const box = [(left + right - side) / 2, (top + bottom - side) / 2, side, side]
+  return frontSvg('dark', box, frontShackle(0, 'wm-shackle') + frontLetter(LOCK))
+}
+
+function lettersSvg (theme) {
+  const { left, right, top, bottom } = frontBounds(WORD.letters, M.SHACKLE_LIFT)
+  const box = [left - LETTERS_PAD, top - LETTERS_PAD, right - left + LETTERS_PAD * 2, bottom - top + LETTERS_PAD * 2]
+  const body = WORD.letters.map(letter => (letter === LOCK ? frontShackle(M.SHACKLE_LIFT, 'wm-shackle wm-free') : '') + frontLetter(letter)).join('')
+  return frontSvg(theme, box, body)
+}
+
 const frames = await recordLoop({ createSim, machine: MACHINE, createLock: require(join(ROOT, 'src', 'create.js')) })
 const STILL = stillOf(frames)
 const seconds = frames.length / FPS
+
+writeFileSync(join(ROOT, 'static', 'favicon.svg'), compactSvg(faviconSvg()))
+console.log('wrote static/favicon.svg')
+for (const theme of ['dark', 'light']) {
+  const name = `logo${theme === 'light' ? '-light' : ''}.svg`
+  writeFileSync(join(ROOT, 'static', name), compactSvg(lettersSvg(theme)))
+  console.log(`wrote static/${name}`)
+}
 
 for (const theme of ['dark', 'light']) {
   const suffix = theme === 'light' ? '-light' : ''

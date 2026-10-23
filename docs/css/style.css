@@ -128,11 +128,32 @@ main {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 32px 15px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out, visibility 0s 0.3s;
+  visibility: hidden;
+}
+
+.cover-passed .sidebar > h1 {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar > h1,
+  .cover-passed .sidebar > h1 {
+    transition: none;
+  }
 }
 
 .sidebar > h1 a {
   color: var(--primary-color);
   text-decoration: none;
+}
+
+.sidebar > h1 img {
+  display: block;
+  width: 100%;
 }
 
 .sidebar .sidebar-nav {
@@ -238,6 +259,28 @@ body.sticky .sidebar-toggle {
   aspect-ratio: 640 / 324;
   margin: 0 auto 2rem;
   max-width: 640px;
+}
+
+.markdown-section > .subtitle {
+  color: var(--muted-color);
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 1rem;
+  padding-bottom: 1rem;
+  text-wrap: balance;
+}
+
+.markdown-section > .badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 0 0 3rem;
+}
+
+.markdown-section > .badges img {
+  display: block;
 }
 
 .markdown-section :is(h1, h2, h3, h4, h5) {

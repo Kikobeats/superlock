@@ -7,11 +7,13 @@
   </a>
 </p>
 
-[![Last version](https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square)](https://github.com/Kikobeats/superlock/releases)
-[![Coverage Status](https://img.shields.io/coverallsCoverage/github/Kikobeats/superlock?style=flat-square)](https://coveralls.io/github/Kikobeats/superlock)
-[![NPM Status](https://img.shields.io/npm/dm/superlock?style=flat-square)](https://www.npmjs.com/package/superlock)
+<p align="center" class="subtitle">The minimal Node.js concurrency toolkit.</p>
 
-> A mutex/semaphore implementation made easy to use.
+<p align="center" class="badges">
+  <a href="https://github.com/Kikobeats/superlock/releases"><img alt="Last version" src="https://img.shields.io/github/v/tag/Kikobeats/superlock?style=flat-square"></a>
+  <a href="https://coveralls.io/github/Kikobeats/superlock"><img alt="Coverage Status" src="https://img.shields.io/coverallsCoverage/github/Kikobeats/superlock?style=flat-square"></a>
+  <a href="https://www.npmjs.com/package/superlock"><img alt="NPM Status" src="https://img.shields.io/npm/dm/superlock?style=flat-square"></a>
+</p>
 
 ## Why
 
