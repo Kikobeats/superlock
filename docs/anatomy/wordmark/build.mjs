@@ -390,37 +390,39 @@ const write = (name, text) => {
   console.log('wrote', name, `${(Buffer.byteLength(text) / 1024).toFixed(1)} KB`)
 }
 
+const FRONT = { origin: [0, 0], scale: P.scale, azimuth: 90, elevation: 0 }
+const frontSolid = createPrism(k, FRONT)
 const FAVICON_MARGIN = 0.2
 const FAVICON_CORNER = 0.2
+const LETTERS_PAD = 2
 
-function faviconSvg () {
-  const letter = WORD.letters[0]
-  const points = letter.rings.flat().flatMap(([x, z]) => [-THICK / 2, THICK / 2].map(y => at([letter.x + x, y, BASELINE + z])))
+const round = value => Math.round(value * 100) / 100
+const frontLetter = letter => frontSolid(letter.rings, [letter.x, BASELINE], [-THICK / 2, THICK / 2], { className: 'wm-letter' })
+const frontShackle = (lift, className) => frontSolid([shackleRing()], [LOCK.x, BASELINE + lift], [-SHACKLE_Y, SHACKLE_Y], { className, tone: 'mid', crease: 'lo', trim: false })
+
+function frontBounds (letters, lift) {
+  const extent = (rings, [x, z], y) => rings.flat().flatMap(([dx, dz]) => [-y, y].map(side => k.iso([x + dx, side, z + dz], FRONT)))
+  const points = [...letters.flatMap(letter => extent(letter.rings, [letter.x, BASELINE], THICK / 2)), ...extent([shackleRing()], [LOCK.x, BASELINE + lift], SHACKLE_Y)]
   const xs = points.map(([x]) => x)
   const ys = points.map(([, y]) => y)
-  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / (1 - FAVICON_MARGIN * 2)
-  const [left, top, size] = [(Math.min(...xs) + Math.max(...xs) - side) / 2, (Math.min(...ys) + Math.max(...ys) - side) / 2, side].map(value => Math.round(value * 100) / 100)
-  const tile = `<rect x="${left}" y="${top}" width="${size}" height="${size}" rx="${(size * FAVICON_CORNER).toFixed(2)}" fill="var(--anatomy-page)"/>`
-  const body = tile + letterSolid(letter, false)
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="dark" viewBox="${left} ${top} ${size} ${size}"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+  return { left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) }
 }
 
-const LETTERS_PAD = 2
-const FRONT = { origin: [0, 0], scale: P.scale, azimuth: 90, elevation: 0 }
+const frontSvg = (theme, viewBox, body) => `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="${theme}" viewBox="${viewBox.map(round).join(' ')}" role="img" aria-label="superlock"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+
+function faviconSvg () {
+  const { left, right, top, bottom } = frontBounds([LOCK], 0)
+  const side = Math.max(right - left, bottom - top) / (1 - FAVICON_MARGIN * 2)
+  const box = [(left + right - side) / 2, (top + bottom - side) / 2, side, side]
+  const tile = `<rect x="${round(box[0])}" y="${round(box[1])}" width="${round(side)}" height="${round(side)}" rx="${round(side * FAVICON_CORNER)}" fill="var(--anatomy-page)"/>`
+  return frontSvg('dark', box, tile + frontShackle(0, 'wm-shackle') + frontLetter(LOCK))
+}
 
 function lettersSvg (theme) {
-  const front = createPrism(k, FRONT)
-  const project = point => k.iso(point, FRONT)
-  const shackleAt = [LOCK.x, BASELINE + M.SHACKLE_LIFT]
-  const shackle = front([shackleRing()], shackleAt, [-SHACKLE_Y, SHACKLE_Y], { className: 'wm-shackle wm-free', tone: 'mid', crease: 'lo', trim: false })
-  const body = WORD.letters.map(letter => (letter === LOCK ? shackle : '') + front(letter.rings, [letter.x, BASELINE], [-THICK / 2, THICK / 2], { className: 'wm-letter' })).join('')
-  const extent = (rings, [x, z], y) => rings.flat().flatMap(([dx, dz]) => [-y, y].map(side => project([x + dx, side, z + dz])))
-  const points = [...WORD.letters.flatMap(letter => extent(letter.rings, [letter.x, BASELINE], THICK / 2)), ...extent([shackleRing()], shackleAt, SHACKLE_Y)]
-  const xs = points.map(([x]) => x)
-  const ys = points.map(([, y]) => y)
-  const [left, top] = [Math.min(...xs) - LETTERS_PAD, Math.min(...ys) - LETTERS_PAD].map(value => Math.round(value * 100) / 100)
-  const [width, height] = [Math.max(...xs) + LETTERS_PAD - left, Math.max(...ys) + LETTERS_PAD - top].map(value => Math.round(value * 100) / 100)
-  return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="${theme}" viewBox="${left} ${top} ${width} ${height}" role="img" aria-label="superlock"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
+  const { left, right, top, bottom } = frontBounds(WORD.letters, M.SHACKLE_LIFT)
+  const box = [left - LETTERS_PAD, top - LETTERS_PAD, right - left + LETTERS_PAD * 2, bottom - top + LETTERS_PAD * 2]
+  const body = WORD.letters.map(letter => (letter === LOCK ? frontShackle(M.SHACKLE_LIFT, 'wm-shackle wm-free') : '') + frontLetter(letter)).join('')
+  return frontSvg(theme, box, body)
 }
 
 const frames = await recordLoop({ createSim, machine: MACHINE, createLock: require(join(ROOT, 'src', 'create.js')) })
