@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://kikobeats.github.io/superlock/">
+  <a href="https://superlock.js.org/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/anatomy/wordmark.svg">
       <img alt="superlock" src="docs/anatomy/wordmark-light.svg" width="640">
