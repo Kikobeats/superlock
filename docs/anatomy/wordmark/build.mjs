@@ -401,7 +401,7 @@ function faviconSvg () {
   const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + FAVICON_PAD * 2
   const [left, top, size] = [(Math.min(...xs) + Math.max(...xs) - side) / 2, (Math.min(...ys) + Math.max(...ys) - side) / 2, side].map(value => Math.round(value * 100) / 100)
   const tile = `<rect x="${left}" y="${top}" width="${size}" height="${size}" rx="${(size * FAVICON_CORNER).toFixed(2)}" fill="var(--anatomy-page)"/>`
-  const body = tile + letterSolid(letter, true)
+  const body = tile + letterSolid(letter, false)
   return `<svg xmlns="http://www.w3.org/2000/svg" class="iso iso-svg" data-theme="dark" viewBox="${left} ${top} ${size} ${size}"><title>superlock</title><style>${pruneCss(`${k.ISO_CSS}${CSS}`, `data-theme ${body}`)}</style>${body}</svg>`
 }
 
