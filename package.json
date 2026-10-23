@@ -90,9 +90,14 @@
     ]
   },
   "c8": {
+    "branches": 100,
+    "check-coverage": true,
+    "functions": 100,
     "include": [
       "src/**/*.js"
-    ]
+    ],
+    "lines": 100,
+    "statements": 100
   },
   "commitlint": {
     "extends": [
