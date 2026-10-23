@@ -390,7 +390,7 @@ const write = (name, text) => {
   console.log('wrote', name, `${(Buffer.byteLength(text) / 1024).toFixed(1)} KB`)
 }
 
-const FAVICON_PAD = 1.5
+const FAVICON_MARGIN = 0.2
 const FAVICON_CORNER = 0.2
 
 function faviconSvg () {
@@ -398,7 +398,7 @@ function faviconSvg () {
   const points = letter.rings.flat().flatMap(([x, z]) => [-THICK / 2, THICK / 2].map(y => at([letter.x + x, y, BASELINE + z])))
   const xs = points.map(([x]) => x)
   const ys = points.map(([, y]) => y)
-  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) + FAVICON_PAD * 2
+  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / (1 - FAVICON_MARGIN * 2)
   const [left, top, size] = [(Math.min(...xs) + Math.max(...xs) - side) / 2, (Math.min(...ys) + Math.max(...ys) - side) / 2, side].map(value => Math.round(value * 100) / 100)
   const tile = `<rect x="${left}" y="${top}" width="${size}" height="${size}" rx="${(size * FAVICON_CORNER).toFixed(2)}" fill="var(--anatomy-page)"/>`
   const body = tile + letterSolid(letter, false)
