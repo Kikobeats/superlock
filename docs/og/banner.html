@@ -11,7 +11,7 @@
       width: 1200px;
       height: 630px;
       overflow: hidden;
-      background: #f2f2ef;
+      background: #0b0b0b;
     }
 
     body {
@@ -31,7 +31,7 @@
   <script>
     const FROZEN = '<style>*{animation:none!important}</style>'
 
-    fetch('../anatomy/wordmark-light.svg')
+    fetch('../anatomy/wordmark.svg')
       .then(response => response.text())
       .then(svg => {
         document.getElementById('logo').innerHTML = svg.replace('</svg>', `${FROZEN}</svg>`)
