@@ -79,7 +79,7 @@ test('robots.txt and sitemap.xml point at the homepage', t => {
 
 test('the favicon and touch icon are linked and exist', t => {
   const href = rel =>
-    html.match(new RegExp(`<link rel="${rel}" href="([^"]*)"`))[1]
+    html.match(new RegExp(`<link rel="${rel}" href="([^"?]*)`))[1]
   t.is(href('icon'), 'static/favicon.svg')
   t.true(read(href('icon')).startsWith('<svg'))
   t.deepEqual(pngSize(href('apple-touch-icon')), { width: 180, height: 180 })
