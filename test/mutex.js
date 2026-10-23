@@ -89,3 +89,46 @@ test('first in, first out', async t => {
     output.slice().sort((a, b) => a - b)
   )
 })
+
+test('free acquires share one promise and each takes a slot', async t => {
+  const lock = createLock(2)
+
+  const first = lock()
+  const second = lock(null)
+
+  t.is(first, second)
+  t.true(lock.isLocked())
+
+  const releaseFirst = await first
+  const releaseSecond = await second
+  t.is(releaseFirst, releaseSecond)
+
+  releaseFirst()
+  releaseSecond()
+  t.false(lock.isLocked())
+})
+
+test('a queued or signaled acquire does not share the free promise', async t => {
+  const lock = createLock()
+  const held = lock()
+  const queued = lock()
+
+  t.not(queued, held)
+
+  const releaseHeld = await held
+  releaseHeld()
+  const releaseQueued = await queued
+  releaseQueued()
+
+  const again = lock()
+  t.is(again, held)
+  const releaseAgain = await again
+  releaseAgain()
+
+  const controller = new AbortController()
+  const signaled = lock(controller.signal)
+  t.not(signaled, held)
+  const releaseSignaled = await signaled
+  releaseSignaled()
+  t.false(lock.isLocked())
+})
