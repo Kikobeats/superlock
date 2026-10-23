@@ -12,7 +12,7 @@ const DEPTH = 1000
 
 const median = values => {
   const sorted = values.slice().sort((a, b) => a - b)
-  return sorted[(sorted.length / 2) | 0]
+  return sorted[Math.floor(sorted.length / 2)]
 }
 
 const sample = async work => {

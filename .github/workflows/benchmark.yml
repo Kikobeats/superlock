@@ -30,7 +30,7 @@ jobs:
           restore-keys: benchmark-
       - name: Run benchmark
         run: node benchmark/index.js
-      - name: Compare and comment
+      - name: Record benchmark
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: j3hempsey-actions/github-action-benchmark@v1.0.5
         with:
@@ -40,11 +40,17 @@ jobs:
           external-data-json-path: cache/benchmark-data.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
-          comment-always: true
-          pr-comment-always: true
+          comment-always: false
+          pr-comment-always: false
           comment-on-alert: false
           fail-on-alert: false
           summary-always: false
+      - name: Comment on pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node benchmark/comment.js cache/benchmark-data.json
       - name: Save benchmark
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/cache/save@v4
