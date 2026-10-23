@@ -3,24 +3,56 @@
 const { execFileSync } = require('node:child_process')
 const { readFileSync } = require('node:fs')
 
-const dataPath = process.argv[2] || 'cache/benchmark-data.json'
-const data = JSON.parse(readFileSync(dataPath, 'utf8'))
-const suites = (data.entries && data.entries.superlock) || []
-const current = suites[suites.length - 1]
+const readJson = path => JSON.parse(readFileSync(path, 'utf8'))
+
+const fromHistory = path => {
+  const data = readJson(path)
+  const suites = (data.entries && data.entries.superlock) || []
+  const current = suites[suites.length - 1]
+  if (!current) return { current }
+  const previous = suites
+    .slice()
+    .reverse()
+    .find(suite => suite.commit.id !== current.commit.id)
+  return { current, previous }
+}
+
+const fromPair = (headPath, basePath) => ({
+  current: {
+    commit: { id: process.env.HEAD_SHA || '' },
+    benches: readJson(headPath)
+  },
+  previous: {
+    commit: { id: process.env.BASE_SHA || '' },
+    benches: readJson(basePath)
+  }
+})
+
+const loaded = process.argv[3]
+  ? fromPair(process.argv[2], process.argv[3])
+  : fromHistory(process.argv[2] || 'cache/benchmark-data.json')
+const current = loaded.current
+const previous = loaded.previous
 
 if (!current) {
   console.error('no benchmark result')
   process.exit(0)
 }
 
-const previous = suites
-  .slice()
-  .reverse()
-  .find(suite => suite.commit.id !== current.commit.id)
+const bounds = bench => {
+  if (!bench || !bench.range) return null
+  const [min, max] = bench.range.split('-').map(Number)
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null
+  return [min, max]
+}
 
 const faster = (now, before) => {
   if (!before || !now) return ''
-  const percent = Math.round((before / now - 1) * 100)
+  const left = bounds(now)
+  const right = bounds(before)
+  const overlap = left && right && left[1] >= right[0] && right[1] >= left[0]
+  if (overlap) return '0%'
+  const percent = Math.round((before.value / now.value - 1) * 100)
   return `${percent}%`
 }
 
@@ -28,7 +60,7 @@ const repo = process.env.GITHUB_REPOSITORY
 const server = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
 const commitLink = commit => {
-  if (!commit) return ''
+  if (!commit || !commit.id) return ''
   const short = commit.id.slice(0, 7)
   if (!repo) return short
   return `[${short}](${server}/${repo}/commit/${commit.id})`
@@ -53,7 +85,7 @@ const lines = [
 for (const bench of current.benches) {
   const prev =
     previous && previous.benches.find(item => item.name === bench.name)
-  const shown = faster(bench.value, prev && prev.value)
+  const shown = faster(bench, prev)
   lines.push(
     `| \`${bench.name}\` | ${cell(bench)} | ${cell(prev)} | ${
       shown ? `\`${shown}\`` : ''
