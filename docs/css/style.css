@@ -246,6 +246,7 @@ body.sticky .sidebar-toggle {
   letter-spacing: -0.01em;
   line-height: 1.3;
   margin: 0 0 1rem;
+  padding-bottom: 1rem;
   text-wrap: balance;
 }
 
