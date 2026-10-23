@@ -312,7 +312,7 @@ const LIVE_CSS = `
 [data-letter][data-hover] .wm-letter:not([data-lit])>[data-cap]{fill:var(--wm-hover-cap)}
 .iso{--wm-hover-top:var(--anatomy-lo);--wm-hover-cap:var(--anatomy-faint)}
 .iso[data-theme="light"]{--wm-hover-top:var(--anatomy-shade-0);--wm-hover-cap:var(--anatomy-shade-2)}
-@media (prefers-reduced-motion:reduce){.wm-letter{transition:none}}
+@media (prefers-reduced-motion:reduce){.wm-letter,.wm-hint{transition:none}}
 `
 
 const PAGE_CSS = `
@@ -326,6 +326,7 @@ html:has(body[data-theme="light"]){color-scheme:light}
 .wm-hint [data-touch]{display:none}
 @media (pointer:coarse){.wm-hint [data-touch]{display:inline}.wm-hint [data-mouse]{display:none}}
 @media (max-width:420px){.wm-hint{font-size:9px;letter-spacing:0}.wm-status{font-size:10px}}
+@media (hover:hover){.wm-hint{opacity:0;transition:opacity .2s var(--anatomy-ease)}body:hover .wm-hint,body:has(.wm-stage:focus-visible) .wm-hint{opacity:.8}}
 .wm-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 html[data-embed] body{background:transparent}
 html[data-embed] .iso-page{width:100%;margin:0;display:flow-root}
