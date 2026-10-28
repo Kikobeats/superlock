@@ -7,7 +7,7 @@ interface LockInterface extends Lock {
   awaiting: () => number;
 }
 
-declare function createLock(slots?: number): LockInterface;
+declare function createLock(slots?: number | bigint): LockInterface;
 
 declare type FairQueue = (signal?: AbortSignal | null, key?: unknown) => Promise<Release | null>;
 
@@ -16,9 +16,9 @@ interface FairQueueInterface extends FairQueue {
   awaiting: () => number;
 }
 
-declare function createFairQueue(slots?: number): FairQueueInterface;
+declare function createFairQueue(slots?: number | bigint): FairQueueInterface;
 
-declare function createFairLock(slots?: number): FairQueueInterface;
+declare function createFairLock(slots?: number | bigint): FairQueueInterface;
 
 interface FairLockInterface extends FairQueueInterface {}
 
@@ -29,7 +29,7 @@ interface WithFairQueueInterface extends WithFairQueue {
   awaiting: () => number;
 }
 
-declare function withFairQueue(slots?: number): WithFairQueueInterface;
+declare function withFairQueue(slots?: number | bigint): WithFairQueueInterface;
 
 declare type WithLock = <T>(fn: () => Promise<T>, signal?: AbortSignal) => Promise<T | undefined>;
 
@@ -38,6 +38,6 @@ interface WithLockInterface extends WithLock {
   awaiting: () => number;
 }
 
-declare function withLock(opts?: number): WithLockInterface;
+declare function withLock(opts?: number | bigint): WithLockInterface;
 
 export { withLock, createLock, withFairQueue, createFairQueue, createFairLock, WithLockInterface, WithFairQueueInterface, FairQueueInterface, FairLockInterface };
