@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 1.4.12 (2026-10-28)
+
+
+### Bug Fixes
+
+* **create:** make release idempotent per acquisition ([#43](https://github.com/Kikobeats/superlock/issues/43)) ([5c79fd8](https://github.com/Kikobeats/superlock/commit/5c79fd811b74de902667dd403334dc586283d8df))
+
 ### 1.4.11 (2026-10-23)
 
 ### 1.4.10 (2026-10-23)
