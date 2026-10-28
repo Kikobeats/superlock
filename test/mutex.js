@@ -90,45 +90,88 @@ test('first in, first out', async t => {
   )
 })
 
-test('free acquires share one promise and each takes a slot', async t => {
+test('free acquires each take a slot', async t => {
   const lock = createLock(2)
 
-  const first = lock()
-  const second = lock(null)
+  const releaseFirst = await lock()
+  const releaseSecond = await lock(null)
 
-  t.is(first, second)
   t.true(lock.isLocked())
 
-  const releaseFirst = await first
-  const releaseSecond = await second
-  t.is(releaseFirst, releaseSecond)
-
   releaseFirst()
+  t.false(lock.isLocked())
   releaseSecond()
   t.false(lock.isLocked())
 })
 
-test('a queued or signaled acquire does not share the free promise', async t => {
+test('a second release call does not free a slot held by someone else', async t => {
   const lock = createLock()
-  const held = lock()
+
+  const releaseFirst = await lock()
+  releaseFirst()
+  const releaseSecond = await lock()
+  releaseFirst()
+
+  t.true(lock.isLocked())
+
+  let granted = false
+  const third = lock().then(release => {
+    granted = true
+    return release
+  })
+  await delay(0)
+  t.false(granted)
+
+  releaseSecond()
+  const releaseThird = await third
+  t.true(granted)
+  releaseThird()
+  t.false(lock.isLocked())
+})
+
+test('a second release call does not raise the concurrency limit', async t => {
+  const lock = createLock(2)
+
+  const releaseFirst = await lock()
+  releaseFirst()
+  releaseFirst()
+
+  const releaseSecond = await lock()
+  const releaseThird = await lock()
+  t.true(lock.isLocked())
+
+  releaseSecond()
+  releaseThird()
+  t.false(lock.isLocked())
+})
+
+test('a second release call from a queued holder grants only the next waiter', async t => {
+  const lock = createLock()
+  const controller = new AbortController()
+
+  const releaseHeld = await lock()
   const queued = lock()
+  const signaled = lock(controller.signal)
+  const last = lock()
 
-  t.not(queued, held)
-
-  const releaseHeld = await held
   releaseHeld()
   const releaseQueued = await queued
   releaseQueued()
+  releaseQueued()
 
-  const again = lock()
-  t.is(again, held)
-  const releaseAgain = await again
-  releaseAgain()
-
-  const controller = new AbortController()
-  const signaled = lock(controller.signal)
-  t.not(signaled, held)
   const releaseSignaled = await signaled
+  t.true(lock.isLocked())
+  t.is(lock.awaiting(), 1)
   releaseSignaled()
+  releaseSignaled()
+
+  const releaseLast = await last
+  t.true(lock.isLocked())
+  releaseLast()
+  releaseLast()
   t.false(lock.isLocked())
+
+  const releaseAgain = await lock()
+  t.true(lock.isLocked())
+  releaseAgain()
 })
