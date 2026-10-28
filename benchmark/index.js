@@ -2,13 +2,15 @@
 
 const { writeFileSync } = require('node:fs')
 const { join } = require('node:path')
-const { createLock, withLock } = require('superlock')
+const { createFairQueue, createLock, withLock } = require('superlock')
 
 const RUNS = 7
 const FREE_OPS = 1_000_000
 const WRAP_OPS = 200_000
 const BURSTS = 200
 const DEPTH = 1000
+const FAIR_SLOTS = 8
+const FAIR_BURSTS = 500
 
 const median = values => {
   const sorted = values.slice().sort((a, b) => a - b)
@@ -44,7 +46,9 @@ const report = (name, result, work) => {
   console.log(
     `${name}  median ${result.med.toFixed(
       1
-    )}ms  range ${min}-${max}  work ${work}  errors ${result.errors}  runs ${RUNS}`
+    )}ms  range ${min}-${max}  work ${work}  errors ${
+      result.errors
+    }  runs ${RUNS}`
   )
   results.push({
     name,
@@ -53,6 +57,29 @@ const report = (name, result, work) => {
     range: `${min}-${max}`,
     extra: `work ${work}, errors ${result.errors}, runs ${RUNS}`
   })
+}
+
+const fairQueue = keys => async () => {
+  const lock = createFairQueue(FAIR_SLOTS)
+  let granted = 0
+  const acquire = index =>
+    lock(undefined, index % keys).then(release => {
+      if (typeof release !== 'function') throw new Error('missing release')
+      granted++
+      release()
+    })
+  for (let burst = 0; burst < FAIR_BURSTS; burst++) {
+    await Promise.all(
+      Array.from({ length: DEPTH }, (_, index) => acquire(index))
+    )
+  }
+  if (
+    granted !== FAIR_BURSTS * DEPTH ||
+    lock.isLocked() ||
+    lock.awaiting() !== 0
+  ) {
+    throw new Error('fair queue did not drain')
+  }
 }
 
 const main = async () => {
@@ -94,7 +121,14 @@ const main = async () => {
   })
   report('createLock queue', queued, BURSTS * DEPTH)
 
-  if (free.errors || wrapped.errors || queued.errors) {
+  const fairOneKey = await sample(fairQueue(1))
+  report('createFairQueue 1 key', fairOneKey, FAIR_BURSTS * DEPTH)
+
+  const fairManyKeys = await sample(fairQueue(1000))
+  report('createFairQueue 1000 keys', fairManyKeys, FAIR_BURSTS * DEPTH)
+
+  const samples = [free, wrapped, queued, fairOneKey, fairManyKeys]
+  if (samples.some(result => result.errors)) {
     process.exitCode = 1
     return
   }
