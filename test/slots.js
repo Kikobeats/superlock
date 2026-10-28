@@ -11,20 +11,36 @@ const { inspect } = require('util')
 
 const constructors = { createLock, createFairQueue, withLock, withFairQueue }
 
-const invalid = [-1, 0, -0, 1.5, NaN, -Infinity, null, '', 'abc', '1.5', {}]
+const invalid = [
+  -1,
+  0,
+  -0,
+  1.5,
+  NaN,
+  -Infinity,
+  null,
+  '',
+  'abc',
+  '1.5',
+  {},
+  2 ** 53 + 2,
+  2 ** 54,
+  Number.MAX_VALUE
+]
 
 for (const [name, create] of Object.entries(constructors)) {
   for (const slots of invalid) {
     test(`${name}(${inspect(slots)}) throws`, t => {
       t.throws(() => create(slots), {
         instanceOf: TypeError,
-        message: '`slots` needs to be a positive integer or Infinity.'
+        message:
+          '`slots` needs to be a positive integer up to 2 ** 53, or Infinity.'
       })
     })
   }
 
   test(`${name} accepts the default, positive integers and Infinity`, t => {
-    for (const slots of [undefined, 1, 2, Infinity]) {
+    for (const slots of [undefined, 1, 2, 2 ** 53, Infinity]) {
       t.notThrows(() => create(slots))
     }
   })
