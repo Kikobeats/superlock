@@ -169,7 +169,7 @@ If `signal` aborts while the call is still queued, the function is skipped and t
 Type: `number`<br>
 Default: `1`
 
-It sets the maximum of concurrency allowed for the lock.
+It sets the maximum of concurrency allowed for the lock. A positive integer, or `Infinity` for no limit. Any other value throws `TypeError`.
 
 #### signal
 
@@ -201,7 +201,7 @@ An optional `AbortSignal` is the first argument. If it aborts while the call is 
 Type: `number`<br>
 Default: `1`
 
-How many callers can hold the lock at once.
+How many callers can hold the lock at once. A positive integer, or `Infinity` for no limit. Any other value throws `TypeError`.
 
 ### createFairQueue([slots=1])
 
@@ -225,7 +225,7 @@ A missing key shares one queue. Any other value, including `null`, is its own qu
 Type: `number`<br>
 Default: `1`
 
-How many callers can hold the queue at once.
+How many callers can hold the queue at once. A positive integer, or `Infinity` for no limit. Any other value throws `TypeError`.
 
 #### signal
 
@@ -268,7 +268,7 @@ If `signal` aborts while the call is still queued, the function is skipped and t
 Type: `number`<br>
 Default: `1`
 
-How many callers can hold the queue at once.
+How many callers can hold the queue at once. A positive integer, or `Infinity` for no limit. Any other value throws `TypeError`.
 
 #### key
 

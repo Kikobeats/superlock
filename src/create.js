@@ -1,8 +1,10 @@
 'use strict'
 
 const LinkedList = require('./linked-list')
+const toSlots = require('./to-slots')
 
-module.exports = (slots = 1) => {
+module.exports = (value = 1) => {
+  let slots = toSlots(value)
   const queue = new LinkedList()
 
   const release = () => {

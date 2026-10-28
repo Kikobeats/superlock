@@ -1,10 +1,12 @@
 'use strict'
 
 const LinkedList = require('./linked-list')
+const toSlots = require('./to-slots')
 
 const SHARED = Symbol('shared')
 
-module.exports = (slots = 1) => {
+module.exports = (value = 1) => {
+  let slots = toSlots(value)
   const keys = new Map()
   const turns = new LinkedList()
   let newestWithoutTurn
