@@ -5,23 +5,30 @@ const LinkedList = require('./linked-list')
 module.exports = (slots = 1) => {
   const queue = new LinkedList()
 
-  const release = () => {
+  const freeSlot = () => {
     ++slots
     const waiter = queue.dequeue()
-    if (waiter) return waiter.acquire()
+    if (waiter) waiter.acquire()
   }
 
-  const ready = Promise.resolve(release)
+  const createRelease = () => {
+    let released = false
+    return () => {
+      if (released) return
+      released = true
+      freeSlot()
+    }
+  }
 
   const acquire = resolve => {
     --slots
-    resolve(release)
+    resolve(createRelease())
   }
 
   const lock = signal => {
     if (signal == null && slots !== 0) {
       --slots
-      return ready
+      return Promise.resolve(createRelease())
     }
 
     return new Promise(resolve => {
